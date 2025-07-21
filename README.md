@@ -32,5 +32,5 @@ The goal of this project was to apply core web development skills learned throug
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/LokeshAshapu/IBM_Internship_Project.git
-   cd ibm-internship-project
+   git clone https://github.com/LokeshAshapu/IBM_internship_Project.git
+   cd IBM_internship_project
