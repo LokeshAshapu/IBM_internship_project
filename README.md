@@ -1,12 +1,15 @@
 # 💼 IBM Internship Project
 
+
 This repository contains the final project completed during my **IBM Front-End Development Internship**, focused on building a basic responsive web application using HTML, CSS, and JavaScript.
 
 ## 📌 Project Overview
 
+
 The goal of this project was to apply core web development skills learned through the IBM SkillsBuild platform. The project demonstrates basic layout, styling, and interactivity for a simple personal or business webpage.
 
 ## 🚀 Technologies Used
+
 
 - **HTML5** – Structure of the webpage  
 - **CSS3** – Styling and responsive design  
