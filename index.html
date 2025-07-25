@@ -1,46 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SkillSync - Personal Skill Gap Analyzer</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Medical Profile</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
+<body>
+    <div class="container">
+        <h1>Emergency Medical Profile</h1>
+        
+        <form id="medicalForm">
+            <div class="form-section">
+                <h2>Personal Information</h2>
+                <input type="text" id="fullName" placeholder="Full Name" required>
+                <input type="date" id="dob" required>
+                <select id="bloodType" required>
+                    <option value="">Select Blood Type</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                </select>
+            </div>
 
-<body class="bg-gray-100 text-gray-900">
-  <header class="bg-blue-800 text-white p-4 flex justify-between items-center">
-  <h1 class="text-2xl font-bold">SkillSync</h1>
-  <nav class="space-x-2 hidden md:flex">
-    <button class="btn" onclick="navigate('skills')">Skills</button>
-    <button class="btn" onclick="navigate('roles')">Roles</button>
-    <button class="btn" onclick="navigate('gap')">Gap</button>
-    <button class="btn" onclick="navigate('roadmap')">Roadmap</button>
-    <button class="btn" onclick="exportPDF()">Export PDF</button>
-  </nav>
-  <nav class="navbar flex md:hidden relative">
-    <button id="hamburger" class="hamburger text-3xl" aria-label="Menu">&#9776;</button>
-    <div id="navMenu" class="nav-menu absolute right-0 top-12 bg-blue-800 rounded shadow-lg p-4 hidden flex-col space-y-2 z-50">
-      <button class="btn w-full" onclick="navigate('skills')">Skills</button>
-      <button class="btn w-full" onclick="navigate('roles')">Roles</button>
-      <button class="btn w-full" onclick="navigate('gap')">Gap Analysis</button>
-      <button class="btn w-full" onclick="navigate('roadmap')">Roadmap</button>
-      <button class="btn w-full" onclick="exportPDF()">Export PDF</button>
+            <div class="form-section">
+                <h2>Medical Information</h2>
+                <textarea id="conditions" placeholder="Chronic conditions (comma separated)"></textarea>
+                <textarea id="allergies" placeholder="Allergies (comma separated)"></textarea>
+                <textarea id="medications" placeholder="Current medications (name, dosage)"></textarea>
+            </div>
+
+            <div class="form-section">
+                <h2>Emergency Contacts</h2>
+                <div id="contactsContainer">
+                    <div class="contact-entry">
+                        <input type="text" placeholder="Name" class="contact-name" required>
+                        <input type="tel" placeholder="Phone" class="contact-phone" required>
+                        <input type="text" placeholder="Relationship" class="contact-relationship" required>
+                    </div>
+                </div>
+                <button type="button" id="addContactBtn">+ Add Another Contact</button>
+            </div>
+
+            <button type="submit">Save Profile</button>
+        </form>
+
+        <div id="successMessage" class="hidden">
+            <h2>Profile Saved Successfully!</h2>
+            <p>Your unique access code: <span id="uniqueCode"></span></p>
+            <p>Share this code with trusted individuals for emergency access.</p>
+            <a href="search.html">Search for a profile</a>
+        </div>
     </div>
-  </nav>
-  </header>
 
-  <main id="app" class="p-6"></main>
-
-  <style>
-    .btn {
-      @apply bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded;
-    }
-  </style>
-
-  <script src="script.js"></script>
+    <script src="js/mongodb-api.js"></script>
+    <script src="js/app.js"></script>
 </body>
-
 </html>
