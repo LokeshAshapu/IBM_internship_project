@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Emergency Information</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Access Emergency Information</h1>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Enter unique access code">
+            <button id="searchBtn">Search</button>
+        </div>
+
+        <div id="searchResults" class="hidden">
+            <h2>Emergency Medical Information</h2>
+            <div id="profileData"></div>
+            <a href="index.html">Create new profile</a>
+        </div>
+
+        <div id="errorMessage" class="hidden">
+            <p>No profile found with that code. Please check and try again.</p>
+        </div>
+    </div>
+
+    <script src="js/mongodb-api.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
