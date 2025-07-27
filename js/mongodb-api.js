@@ -1,157 +1,91 @@
-// mongodb-api.js - Frontend connection to MongoDB Atlas Data API
+const STORAGE_KEY = 'profiles_json_store';
 
-const MONGODB_DATA_API_URL = 'https://data.mongodb-api.com/app/data-abcde/endpoint/data/v1';
-const API_KEY = 'your-api-key-here'; // Replace with your actual API key
-const DATABASE_NAME = 'emergencyDB';
-const COLLECTION_NAME = 'profiles';
-
-// Generate a short unique ID (8 characters)
 function generateUniqueId() {
     return Math.random().toString(36).substring(2, 10);
 }
 
-// Save profile data to MongoDB Atlas
-async function saveProfileToMongo(profileData) {
-    const uniqueId = generateUniqueId();
+function loadAllProfiles() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : {};
+}
+
+function saveAllProfiles(profiles) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles));
+}
+
+function saveProfile(profileData) {
+    const id = generateUniqueId();
+    const allProfiles = loadAllProfiles();
+
     const document = {
-        _id: uniqueId,
+        _id: id,
         ...profileData,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
     };
 
-    try {
-        const response = await fetch(`${MONGODB_DATA_API_URL}/action/insertOne`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'api-key': API_KEY,
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                dataSource: 'Cluster0', // Your cluster name
-                database: DATABASE_NAME,
-                collection: COLLECTION_NAME,
-                document: document
-            })
-        });
+    allProfiles[id] = document;
+    saveAllProfiles(allProfiles);
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        
-        if (result.insertedId) {
-            return uniqueId;
-        } else {
-            throw new Error('Failed to save document');
-        }
-    } catch (error) {
-        console.error('Error saving to MongoDB Atlas:', error);
-        throw error;
-    }
+    return id;
 }
 
-// Find profile by ID in MongoDB Atlas
-async function findProfileById(id) {
-    try {
-        const response = await fetch(`${MONGODB_DATA_API_URL}/action/findOne`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'api-key': API_KEY,
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                dataSource: 'Cluster0',
-                database: DATABASE_NAME,
-                collection: COLLECTION_NAME,
-                filter: { _id: id }
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        return result.document;
-    } catch (error) {
-        console.error('Error fetching from MongoDB Atlas:', error);
-        throw error;
-    }
+function findProfileById(id) {
+    const allProfiles = loadAllProfiles();
+    return allProfiles[id] || null;
 }
 
-// Update profile data
-async function updateProfile(id, updatedData) {
-    try {
-        const response = await fetch(`${MONGODB_DATA_API_URL}/action/updateOne`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'api-key': API_KEY,
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                dataSource: 'Cluster0',
-                database: DATABASE_NAME,
-                collection: COLLECTION_NAME,
-                filter: { _id: id },
-                update: {
-                    $set: {
-                        ...updatedData,
-                        updatedAt: new Date()
-                    }
-                }
-            })
-        });
+function updateProfile(id, updatedData) {
+    const allProfiles = loadAllProfiles();
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+    if (!allProfiles[id]) return false;
 
-        const result = await response.json();
-        return result.modifiedCount === 1;
-    } catch (error) {
-        console.error('Error updating document:', error);
-        throw error;
-    }
+    allProfiles[id] = {
+        ...allProfiles[id],
+        ...updatedData,
+        updatedAt: new Date().toISOString()
+    };
+
+    saveAllProfiles(allProfiles);
+    return true;
 }
 
-// Delete profile
-async function deleteProfile(id) {
-    try {
-        const response = await fetch(`${MONGODB_DATA_API_URL}/action/deleteOne`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'api-key': API_KEY,
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                dataSource: 'Cluster0',
-                database: DATABASE_NAME,
-                collection: COLLECTION_NAME,
-                filter: { _id: id }
-            })
-        });
+function deleteProfile(id) {
+    const allProfiles = loadAllProfiles();
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+    if (!allProfiles[id]) return false;
 
-        const result = await response.json();
-        return result.deletedCount === 1;
-    } catch (error) {
-        console.error('Error deleting document:', error);
-        throw error;
-    }
+    delete allProfiles[id];
+    saveAllProfiles(allProfiles);
+    return true;
 }
 
-export { 
-    saveProfileToMongo, 
-    findProfileById, 
-    updateProfile, 
-    deleteProfile 
+function downloadAllProfiles() {
+    const profiles = loadAllProfiles();
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(profiles, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", "profiles.json");
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    document.body.removeChild(downloadAnchor);
+}
+
+function downloadProfile(profileData) {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(profileData, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", "profile.json");
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    document.body.removeChild(downloadAnchor);
+}
+
+export {
+    saveProfile,
+    findProfileById,
+    updateProfile,
+    deleteProfile,
+    downloadProfile,
+    downloadAllProfiles
 };
