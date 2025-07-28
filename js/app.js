@@ -1,6 +1,63 @@
 // Storage API
 const STORAGE_KEY = 'emergency_profiles';
 
+// AI API Configuration
+const AI_API_CONFIG = {
+    // Using Hugging Face's free medical AI model
+    url: 'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium',
+    // You can also use OpenAI API (requires API key)
+    // url: 'https://api.openai.com/v1/chat/completions',
+    headers: {
+        'Content-Type': 'application/json',
+        // Add your API key here if using a paid service
+        // 'Authorization': 'Bearer YOUR_API_KEY'
+    }
+};
+
+// Mock AI responses for demonstration (use when API is not available)
+const MOCK_AI_RESPONSES = {
+    diabetes: [
+        {
+            name: "Metformin",
+            purpose: "Blood sugar control",
+            dosage: "500mg twice daily with meals",
+            warning: "Monitor for signs of lactic acidosis. Take with food to reduce stomach upset."
+        }
+    ],
+    hypertension: [
+        {
+            name: "Lisinopril",
+            purpose: "Blood pressure control",
+            dosage: "10mg once daily",
+            warning: "Monitor blood pressure regularly. May cause dry cough in some patients."
+        }
+    ],
+    asthma: [
+        {
+            name: "Albuterol Inhaler",
+            purpose: "Bronchodilator for acute symptoms",
+            dosage: "1-2 puffs every 4-6 hours as needed",
+            warning: "Rinse mouth after use. Seek immediate medical attention if symptoms worsen."
+        }
+    ],
+    depression: [
+        {
+            name: "Sertraline",
+            purpose: "Antidepressant (SSRI)",
+            dosage: "50mg once daily, preferably in morning",
+            warning: "May take 4-6 weeks to show full effect. Monitor for mood changes."
+        }
+    ],
+    anxiety: [
+        {
+            name: "Lorazepam",
+            purpose: "Short-term anxiety relief",
+            dosage: "0.5-1mg as needed, maximum 3 times daily",
+            warning: "Can be habit-forming. Avoid alcohol. Do not drive while taking."
+        }
+    ]
+};
+
 function generateUniqueId() {
     return Math.random().toString(36).substring(2, 10).toUpperCase();
 }
@@ -80,6 +137,130 @@ function downloadProfile(profileData) {
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     document.body.removeChild(downloadAnchor);
+}
+
+// AI Medicine Suggestion Functions
+async function getMedicineSuggestions(conditions, allergies = []) {
+    try {
+        // For demonstration, we'll use mock responses
+        // In production, you would call a real AI API
+        return await getMockAISuggestions(conditions, allergies);
+        
+        // Uncomment below for real AI API integration
+        // return await getRealAISuggestions(conditions, allergies);
+    } catch (error) {
+        console.error('AI API Error:', error);
+        throw new Error('Unable to get AI suggestions at this time');
+    }
+}
+
+async function getMockAISuggestions(conditions, allergies) {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    const suggestions = [];
+    const processedConditions = conditions.map(c => c.toLowerCase());
+    
+    processedConditions.forEach(condition => {
+        // Find matching conditions in our mock database
+        Object.keys(MOCK_AI_RESPONSES).forEach(key => {
+            if (condition.includes(key) || key.includes(condition)) {
+                suggestions.push(...MOCK_AI_RESPONSES[key]);
+            }
+        });
+    });
+    
+    // If no specific matches, provide general suggestions
+    if (suggestions.length === 0) {
+        suggestions.push({
+            name: "General Health Assessment Needed",
+            purpose: "Comprehensive medical evaluation",
+            dosage: "Consult healthcare provider",
+            warning: "Please consult with a healthcare professional for proper diagnosis and treatment."
+        });
+    }
+    
+    // Filter out medicines that might conflict with allergies
+    const filteredSuggestions = suggestions.filter(med => {
+        return !allergies.some(allergy => 
+            med.name.toLowerCase().includes(allergy.toLowerCase())
+        );
+    });
+    
+    return filteredSuggestions.length > 0 ? filteredSuggestions : suggestions;
+}
+
+async function getRealAISuggestions(conditions, allergies) {
+    const prompt = `As a medical AI assistant, suggest appropriate medications for the following conditions: ${conditions.join(', ')}. 
+    Patient allergies: ${allergies.join(', ') || 'None reported'}. 
+    Please provide medication name, purpose, typical dosage, and important warnings. 
+    Format as JSON array with objects containing: name, purpose, dosage, warning.`;
+    
+    const response = await fetch(AI_API_CONFIG.url, {
+        method: 'POST',
+        headers: AI_API_CONFIG.headers,
+        body: JSON.stringify({
+            inputs: prompt,
+            parameters: {
+                max_length: 500,
+                temperature: 0.7
+            }
+        })
+    });
+    
+    if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Process the AI response and extract medication suggestions
+    // This would need to be adapted based on the specific AI API response format
+    return parseAIResponse(data);
+}
+
+function parseAIResponse(aiResponse) {
+    // This function would parse the AI API response
+    // Implementation depends on the specific AI service used
+    // For now, return mock data as fallback
+    return MOCK_AI_RESPONSES.diabetes;
+}
+
+function displayMedicineSuggestions(suggestions) {
+    const aiResults = document.getElementById('aiResults');
+    
+    if (!suggestions || suggestions.length === 0) {
+        aiResults.innerHTML = `
+            <div class="ai-disclaimer">
+                <strong>⚠️ No specific suggestions available</strong><br>
+                Please consult with a healthcare professional for proper medical advice.
+            </div>
+        `;
+        return;
+    }
+    
+    const suggestionsHTML = suggestions.map(med => `
+        <div class="medicine-suggestion">
+            <div class="medicine-name">${med.name}</div>
+            <div class="medicine-purpose">Purpose: ${med.purpose}</div>
+            <div class="medicine-dosage">
+                <strong>Typical Dosage:</strong> ${med.dosage}
+            </div>
+            <div class="medicine-warning">
+                <strong>⚠️ Important:</strong> ${med.warning}
+            </div>
+        </div>
+    `).join('');
+    
+    aiResults.innerHTML = `
+        <h4>AI-Suggested Medications</h4>
+        ${suggestionsHTML}
+        <div class="ai-disclaimer">
+            <strong>⚠️ Medical Disclaimer:</strong> These suggestions are AI-generated and for informational purposes only. 
+            Always consult with a qualified healthcare professional before starting, stopping, or changing any medication. 
+            Your doctor should evaluate your complete medical history, current medications, and individual health needs.
+        </div>
+    `;
 }
 
 // Application logic
@@ -177,6 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('searchBtn')) {
         const searchBtn = document.getElementById('searchBtn');
         const searchInput = document.getElementById('searchInput');
+        let currentProfile = null; // Store current profile for AI suggestions
 
         searchBtn.addEventListener('click', () => {
             performSearch();
@@ -201,6 +383,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const profile = findProfileById(id);
 
                 if (profile) {
+                    currentProfile = profile; // Store for AI suggestions
+                    
                     // Display the profile information
                     profileData.innerHTML = `
                         <div class="profile-display">
@@ -267,6 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     searchResults.classList.remove('hidden');
                     errorMessage.classList.add('hidden');
                 } else {
+                    currentProfile = null;
                     searchResults.classList.add('hidden');
                     errorMessage.classList.remove('hidden');
                 }
@@ -274,6 +459,51 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Search error:', error);
                 alert('Error searching for profile. Please try again.');
             }
+        }
+
+        // Handle AI suggestions
+        if (document.getElementById('getAiSuggestions')) {
+            document.getElementById('getAiSuggestions').addEventListener('click', async () => {
+                if (!currentProfile) {
+                    alert('Please search for a profile first');
+                    return;
+                }
+
+                const button = document.getElementById('getAiSuggestions');
+                const btnText = button.querySelector('.btn-text');
+                const btnLoading = button.querySelector('.btn-loading');
+                const aiResults = document.getElementById('aiResults');
+
+                // Show loading state
+                button.disabled = true;
+                btnText.classList.add('hidden');
+                btnLoading.classList.remove('hidden');
+                aiResults.classList.add('hidden');
+
+                try {
+                    const suggestions = await getMedicineSuggestions(
+                        currentProfile.medical.conditions,
+                        currentProfile.medical.allergies
+                    );
+                    
+                    displayMedicineSuggestions(suggestions);
+                    aiResults.classList.remove('hidden');
+                } catch (error) {
+                    console.error('AI Suggestion Error:', error);
+                    aiResults.innerHTML = `
+                        <div class="ai-disclaimer">
+                            <strong>⚠️ Service Temporarily Unavailable</strong><br>
+                            Unable to get AI suggestions at this time. Please try again later or consult with a healthcare professional.
+                        </div>
+                    `;
+                    aiResults.classList.remove('hidden');
+                } finally {
+                    // Reset button state
+                    button.disabled = false;
+                    btnText.classList.remove('hidden');
+                    btnLoading.classList.add('hidden');
+                }
+            });
         }
     }
 });
