@@ -231,6 +231,11 @@ textarea {
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
+.centered-link {
+    text-align: center;
+    margin-top: 30px;
+}
+
 .info-card h3 {
     color: #333;
     margin-bottom: 15px;
@@ -332,7 +337,6 @@ textarea {
     letter-spacing: 2px;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     body {
         padding: 10px;
