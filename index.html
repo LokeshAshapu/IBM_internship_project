@@ -17,7 +17,6 @@
             <a href="index.html" class="nav-tab active">Create Profile</a>
             <a href="search.html" class="nav-tab">Search Profile</a>
         </div>
-
         <div class="content">
             <form id="medicalForm">
                 <div class="form-section">
@@ -45,7 +44,6 @@
                         </select>
                     </div>
                 </div>
-
                 <div class="form-section">
                     <h2>Medical Information</h2>
                     <div class="form-group">
@@ -60,8 +58,12 @@
                         <label for="medications">Current Medications</label>
                         <textarea id="medications" placeholder="List current medications with dosages (one per line)"></textarea>
                     </div>
+                    <div class="form-group">
+                        <label for="medicalReport">Medical Report (PDF)</label>
+                        <input type="file" id="medicalReport" accept=".pdf">
+                        <div id="fileInfo" class="file-info"></div>
+                    </div>
                 </div>
-
                 <div class="form-section">
                     <h2>Emergency Contacts</h2>
                     <div id="contactsContainer">
@@ -85,10 +87,8 @@
                     </div>
                     <button type="button" id="addContactBtn" class="btn btn-secondary">+ Add Another Contact</button>
                 </div>
-
                 <button type="submit" class="btn btn-primary">Save Profile</button>
             </form>
-
             <div id="successMessage" class="success-message hidden">
                 <h2>✅ Profile Saved Successfully!</h2>
                 <p>Your unique access code:</p>
@@ -98,7 +98,6 @@
             </div>
         </div>
     </div>
-
     <script src="js/app.js"></script>
 </body>
 </html>
