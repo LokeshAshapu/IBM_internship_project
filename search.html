@@ -26,7 +26,21 @@
 
             <div id="searchResults" class="hidden">
                 <div id="profileData"></div>
-                <divdiv class="centered-link">
+                
+                <!-- AI Medicine Suggestions Section -->
+                <div id="aiSuggestionsSection" class="ai-suggestions-section">
+                    <div class="ai-header">
+                        <h3>🤖 AI Medicine Suggestions</h3>
+                        <p>Get AI-powered medicine recommendations based on the medical conditions</p>
+                    </div>
+                    <button id="getAiSuggestions" class="btn btn-primary ai-btn">
+                        <span class="btn-text">Get AI Recommendations</span>
+                        <span class="btn-loading hidden">🔄 Analyzing...</span>
+                    </button>
+                    <div id="aiResults" class="ai-results hidden"></div>
+                </div>
+                
+                <divdiv class="centered-create-profile">
                     <a href="index.html" class="btn btn-secondary">Create New Profile</a>
                 </div>
             </div>
