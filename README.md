@@ -41,4 +41,4 @@ The goal of this project was to apply core web development skills learned throug
 
 
 ## ProtoType(Figma)
-(Proto Type)[https://www.figma.com/proto/McgP0JQodBkANO17plqz60/Emergency-Medical-Profile?node-id=1-2&p=f&t=skNktnt6fqTXOqvn-0&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1]
+[Proto Type](https://www.figma.com/proto/McgP0JQodBkANO17plqz60/Emergency-Medical-Profile?node-id=1-2&p=f&t=skNktnt6fqTXOqvn-0&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1)
