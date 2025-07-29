@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Emergency Medical Profile - Search</title>
+    
+    <!-- Load jsPDF from CDN with proper version -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/search.css">
 </head>
 <body>
     <div class="container">
@@ -19,22 +23,56 @@
             <a href="index.html" class="nav-tab">Create Profile</a>
             <a href="search.html" class="nav-tab active">Search Profile</a>
         </div>
-
+        
         <div class="content">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Enter unique access code">
-                <button id="searchBtn" class="btn btn-primary">Search</button>
+            <div class="search-container">
+                <div class="search-box">
+                    <h2 style="text-align: center; margin-bottom: 25px; color: #333;">🔍 Find Emergency Profile</h2>
+                    
+                    <div class="search-input-group profile-container">
+                        <label for="searchByCode">Search by Unique Access Code:</label>
+                        <input type="text" id="searchByCode" placeholder="Enter unique access code (e.g., 5V3RJ35P)" autocomplete="off">
+                    </div>
+                    
+                    <div class="search-divider">
+                        <span>OR</span>
+                    </div>
+                    
+                    <div class="search-input-group profile-container">
+                        <label for="searchByName">Search by Full Name:</label>
+                        <input type="text" id="searchByName" placeholder="Enter person's full name (e.g., Ashapu Lokesh)" autocomplete="off">
+                    </div>
+                    
+                    <button id="searchBtn" class="search-btn">
+                        <span id="searchBtnText">🔍 Search Profile</span>
+                        <span id="searchBtnLoading" class="hidden">🔄 Searching...</span>
+                    </button>
+                    
+                    <div style="margin-top: 20px; text-align: center;">
+                        <button class="debug-button" onclick="debugListProfiles()">🐛 Debug: List All Profiles</button>
+                    </div>
+                </div>
             </div>
-
+            
             <div id="searchResults" class="hidden">
                 <div id="profileData"></div>
-                <div id="updateProfile"></div>
-                <div id="deleteProfile"></div>
-                <button onclick="downloadAllProfiles()">Download All as JSON</button>
-                <button onclick="downloadAllProfilesAsPDF()">Download All as PDF</button>
-                <button onclick="downloadAllProfilesAsImage()">Download All as Image</button>
                 
-                <!-- AI Medicine Suggestions Section -->
+                <div class="profile-actions">
+                    <div id="downloadProfile" class="profile-action">
+                        <!-- Download button will be inserted here by JavaScript -->
+                    </div>
+                    <div id="printProfile" class="profile-action">
+                        <!-- Print button will be inserted here by JavaScript -->
+                    </div>
+                    <div id="updateProfile" class="profile-action">
+                        <!-- Update button will be inserted here by JavaScript -->
+                    </div>
+                    <div id="deleteProfile" class="profile-action">
+                        <!-- Delete button will be inserted here by JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- AI Suggestions Section -->
                 <div id="aiSuggestionsSection" class="ai-suggestions-section">
                     <div class="ai-header">
                         <h3>🤖 AI Medicine Suggestions</h3>
@@ -47,17 +85,311 @@
                     <div id="aiResults" class="ai-results hidden"></div>
                 </div>
                 
-                <divdiv class="centered-create-profile">
-                    <a href="index.html" class="btn btn-secondary">Create New Profile</a>
+                <!-- Bulk Download Section -->
+                <div class="bulk-download">
+                    <h4>📦 Bulk Download Options</h4>
+                    <div class="bulk-download-buttons">
+                        <button id="downloadAllJSON" class="btn-bulk-json">📄 All as JSON</button>
+                        <button id="downloadAllPDF" class="btn-bulk-pdf">📄 All as PDF</button>
+                        <button id="downloadAllImage" class="btn-bulk-image">🖼️ All as Image</button>
+                    </div>
+                </div>
+                
+                <div class="centered-create-profile" style="text-align: center; margin-top: 30px;">
+                    <a href="index.html" class="btn btn-secondary">➕ Create New Profile</a>
                 </div>
             </div>
-
+            
             <div id="errorMessage" class="error-message hidden">
-                <p>❌ No profile found with that code. Please check and try again.</p>
+                <div style="text-align: center; padding: 30px;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+                    <div style="font-size: 20px; color: #dc3545; font-weight: bold; margin-bottom: 10px;">
+                        Profile Not Found
+                    </div>
+                    <div style="color: #666; margin-bottom: 20px;">
+                        We couldn't find any profile matching your search. Please check the access code or name and try again.
+                    </div>
+                    <a href="index.html" class="btn btn-secondary">➕ Create New Profile</a>
+                </div>
             </div>
         </div>
     </div>
-
     <script src="js/app.js"></script>
+    <script>
+        // Initialize jsPDF
+        window.jsPDF = window.jspdf.jsPDF;
+        
+        // Enhanced search functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchBtn = document.getElementById('searchBtn');
+            const searchByCode = document.getElementById('searchByCode');
+            const searchByName = document.getElementById('searchByName');
+            
+            // Search when button is clicked
+            searchBtn.addEventListener('click', performSearch);
+            
+            // Search when Enter is pressed in either input field
+            [searchByCode, searchByName].forEach(input => {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        performSearch();
+                    }
+                });
+            });
+            
+            // Clear other field when one is being used
+            searchByCode.addEventListener('input', function() {
+                if (this.value.trim()) {
+                    searchByName.value = '';
+                }
+            });
+            
+            searchByName.addEventListener('input', function() {
+                if (this.value.trim()) {
+                    searchByCode.value = '';
+                }
+            });
+            
+            async function performSearch() {
+                const searchResults = document.getElementById('searchResults');
+                const errorMessage = document.getElementById('errorMessage');
+                const profileData = document.getElementById('profileData');
+                const searchBtnText = document.getElementById('searchBtnText');
+                const searchBtnLoading = document.getElementById('searchBtnLoading');
+                
+                const code = searchByCode.value.trim();
+                const name = searchByName.value.trim();
+                const searchTerm = code || name;
+                
+                if (!searchTerm) {
+                    alert('Please enter a search term (either code or name)');
+                    return;
+                }
+                
+                // Show loading state
+                searchBtnText.classList.add('hidden');
+                searchBtnLoading.classList.remove('hidden');
+                searchBtn.disabled = true;
+                
+                try {
+                    const profile = await window.EmergencyProfileSystem.searchProfile(searchTerm);
+                    
+                    if (profile) {
+                        window.currentProfile = profile;
+                        displayProfile(profile);
+                        searchResults.classList.remove('hidden');
+                        errorMessage.classList.add('hidden');
+                    } else {
+                        window.currentProfile = null;
+                        searchResults.classList.add('hidden');
+                        errorMessage.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    console.error('Search error:', error);
+                    alert('Error searching for profile. Please try again.');
+                } finally {
+                    // Restore button state
+                    searchBtnText.classList.remove('hidden');
+                    searchBtnLoading.classList.add('hidden');
+                    searchBtn.disabled = false;
+                }
+            }
+            
+            function displayProfile(profile) {
+                const age = window.EmergencyProfileSystem.calculateAge(profile.personal.dob);
+                
+                profileData.innerHTML = `
+                    <div class="profile-display" id="profileDisplayContainer">
+                        <div class="profile-header">
+                            <h2>${profile.personal.fullName}</h2>
+                            <p>Emergency Medical Information</p>
+                            <p><strong>Profile ID:</strong> ${profile._id}</p>
+                            <small>Last updated: ${new Date(profile.updatedAt).toLocaleString()}</small>
+                        </div>
+
+                        <div class="info-grid">
+                            <div class="info-card">
+                                <h3>Personal Details</h3>
+                                <ul class="info-list">
+                                    <li><strong>Date of Birth:</strong> ${new Date(profile.personal.dob).toLocaleDateString()}</li>
+                                    <li><strong>Age:</strong> ${age} years</li>
+                                    <li><strong>Blood Type:</strong> <span style="color: #ff6b6b; font-weight: bold; font-size: 1.2em;">${profile.personal.bloodType}</span></li>
+                                </ul>
+                            </div>
+
+                            <div class="info-card">
+                                <h3>Medical Conditions</h3>
+                                <ul class="info-list">
+                                    ${profile.medical.conditions.length > 0 ? 
+                                        profile.medical.conditions.map(c => `<li>• ${c}</li>`).join('') : 
+                                        '<li style="color: #666; font-style: italic;">None reported</li>'
+                                    }
+                                </ul>
+                            </div>
+
+                            <div class="info-card">
+                                <h3>⚠️ Allergies</h3>
+                                <ul class="info-list">
+                                    ${profile.medical.allergies.length > 0 ? 
+                                        profile.medical.allergies.map(a => `<li style="color: #dc3545; font-weight: 600; background: #fff5f5; padding: 4px 8px; border-radius: 4px; margin: 2px 0;">🚫 ${a}</li>`).join('') : 
+                                        '<li style="color: #666; font-style: italic;">None reported</li>'
+                                    }
+                                </ul>
+                            </div>
+
+                            <div class="info-card">
+                                <h3>Current Medications</h3>
+                                <ul class="info-list">
+                                    ${profile.medical.medications.length > 0 ? 
+                                        profile.medical.medications.map(m => `<li>💊 ${m}</li>`).join('') : 
+                                        '<li style="color: #666; font-style: italic;">None reported</li>'
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="info-card">
+                            <h3>🚨 Emergency Contacts</h3>
+                            <div class="contacts-grid">
+                                ${profile.emergencyContacts.map(contact => `
+                                    <div class="contact-card">
+                                        <h4>${contact.name}</h4>
+                                        <div class="relationship">${contact.relationship}</div>
+                                        <div class="phone"><a href="tel:${contact.phone}" style="color: #007bff; font-weight: bold;">📞 ${contact.phone}</a></div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Setup action buttons
+                setupProfileActionButtons();
+                
+                // Setup AI suggestions button
+                document.getElementById('getAiSuggestions').addEventListener('click', async function() {
+                    const button = this;
+                    const btnText = button.querySelector('.btn-text');
+                    const btnLoading = button.querySelector('.btn-loading');
+                    const aiResults = document.getElementById('aiResults');
+
+                    button.disabled = true;
+                    btnText.classList.add('hidden');
+                    btnLoading.classList.remove('hidden');
+                    aiResults.classList.add('hidden');
+
+                    try {
+                        const suggestions = await window.EmergencyProfileSystem.getMedicineSuggestions(
+                            profile.medical.conditions,
+                            profile.medical.allergies,
+                            profile.medical.medications
+                        );
+                        
+                        window.EmergencyProfileSystem.displayMedicineSuggestions(suggestions, profile);
+                        aiResults.classList.remove('hidden');
+                    } catch (error) {
+                        console.error('AI Suggestion Error:', error);
+                        aiResults.innerHTML = `
+                            <div class="ai-disclaimer">
+                                <strong>⚠️ Service Temporarily Unavailable</strong><br>
+                                Unable to get AI suggestions at this time. Please try again later.
+                            </div>
+                        `;
+                        aiResults.classList.remove('hidden');
+                    } finally {
+                        button.disabled = false;
+                        btnText.classList.remove('hidden');
+                        btnLoading.classList.add('hidden');
+                    }
+                });
+                
+                // Setup bulk download buttons
+                document.getElementById('downloadAllPDF').addEventListener('click', async function() {
+                    await window.EmergencyProfileSystem.downloadAllProfilesAsPDF();
+                });
+                
+                document.getElementById('downloadAllImage').addEventListener('click', async function() {
+                    await window.EmergencyProfileSystem.downloadAllProfilesAsImage();
+                });
+            }
+            
+            function setupProfileActionButtons() {
+                // Download Profile Button
+                const downloadProfileDiv = document.getElementById('downloadProfile');
+                if (downloadProfileDiv) {
+                    downloadProfileDiv.innerHTML = `
+                        <button id="downloadProfileBtn" class="btn-download">
+                            📥 Download Profile
+                        </button>
+                    `;
+
+                    document.getElementById('downloadProfileBtn').addEventListener('click', () => {
+                        if (window.currentProfile) {
+                            window.EmergencyProfileSystem.downloadProfile(window.currentProfile);
+                        }
+                    });
+                }
+
+                // Print Profile Button
+                const printProfileDiv = document.getElementById('printProfile');
+                if (printProfileDiv) {
+                    printProfileDiv.innerHTML = `
+                        <button id="printProfileBtn" class="btn-print">
+                            🖨️ Print Profile
+                        </button>
+                    `;
+
+                    document.getElementById('printProfileBtn').addEventListener('click', () => {
+                        if (window.currentProfile) {
+                            window.EmergencyProfileSystem.printProfile(window.currentProfile);
+                        }
+                    });
+                }
+
+                // Update Profile Button
+                const updateProfileDiv = document.getElementById('updateProfile');
+                if (updateProfileDiv) {
+                    updateProfileDiv.innerHTML = `
+                        <button id="updateProfileBtn" class="btn-update">
+                            ✏️ Update Profile
+                        </button>
+                    `;
+
+                    document.getElementById('updateProfileBtn').addEventListener('click', () => {
+                        if (window.currentProfile) {
+                            window.EmergencyProfileSystem.showUpdateProfileModal(window.currentProfile);
+                        }
+                    });
+                }
+
+                // Delete Profile Button
+                const deleteProfileDiv = document.getElementById('deleteProfile');
+                if (deleteProfileDiv) {
+                    deleteProfileDiv.innerHTML = `
+                        <button id="deleteProfileBtn" class="btn-delete">
+                            🗑️ Delete Profile
+                        </button>
+                    `;
+
+                    document.getElementById('deleteProfileBtn').addEventListener('click', async () => {
+                        if (window.currentProfile) {
+                            await window.EmergencyProfileSystem.showDeleteConfirmation(window.currentProfile);
+                        }
+                    });
+                }
+            }
+            
+            // Debug function to list all profiles
+            window.debugListProfiles = async function() {
+                const profiles = await window.EmergencyProfileSystem.loadAllProfiles();
+                console.log('All profiles in database:');
+                Object.entries(profiles).forEach(([id, profile]) => {
+                    console.log(`ID: ${id}, Name: ${profile.personal?.fullName || 'Unknown'}`);
+                });
+                alert(`Found ${Object.keys(profiles).length} profiles. Check console for details.`);
+                return profiles;
+            };
+        });
+    </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-// GitHub Configuration
+
 const GITHUB_CONFIG = {
     owner: 'your-username', // Replace with your GitHub username
     repo: 'your-repo-name', // Replace with your repository name
@@ -332,9 +332,50 @@ async function saveProfile(profileData) {
     return id;
 }
 
+// Enhanced search functions - supports both ID and name search
 async function findProfileById(id) {
+    if (!id) return null;
+    
     const allProfiles = await loadAllProfiles();
     return allProfiles[id.toUpperCase()] || null;
+}
+
+async function findProfileByName(name) {
+    if (!name) return null;
+    
+    const allProfiles = await loadAllProfiles();
+    const searchName = name.toLowerCase().trim();
+    
+    // Search through all profiles for matching names
+    for (const profile of Object.values(allProfiles)) {
+        if (profile.personal && profile.personal.fullName) {
+            const profileName = profile.personal.fullName.toLowerCase().trim();
+            if (profileName.includes(searchName) || searchName.includes(profileName)) {
+                return profile;
+            }
+        }
+    }
+    return null;
+}
+
+// Combined search function
+async function searchProfile(searchTerm) {
+    if (!searchTerm) return null;
+    
+    const trimmed = searchTerm.trim();
+    
+    // If the search term looks like an ID (short alphanumeric), try ID search first
+    if (/^[A-Za-z0-9]{6,10}$/.test(trimmed)) {
+        const profileById = await findProfileById(trimmed);
+        if (profileById) return profileById;
+    }
+    
+    // Try name search
+    const profileByName = await findProfileByName(trimmed);
+    if (profileByName) return profileByName;
+    
+    // If no exact matches, try ID search as fallback
+    return await findProfileById(trimmed);
 }
 
 async function updateProfile(id, updatedData) {
@@ -362,66 +403,388 @@ async function deleteProfile(id) {
     return true;
 }
 
-async function downloadAllProfilesAsPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  const profiles = await loadAllProfiles();
-
-  let y = 10;
-
-  profiles.forEach((profile, index) => {
-    doc.setFontSize(14);
-    doc.text(`Emergency Profile ${index + 1}`, 10, y);
-    y += 10;
-
-    doc.setFontSize(11);
-    doc.text(`Full Name: ${profile.personal.fullName}`, 10, y); y += 7;
-    doc.text(`Age: ${profile.personal.age}`, 10, y); y += 7;
-    doc.text(`Location: ${profile.personal.location}`, 10, y); y += 7;
-
-    doc.text(`Emergency Contact: ${profile.emergency.contact}`, 10, y); y += 7;
-    doc.text(`Phone: ${profile.emergency.phone}`, 10, y); y += 12;
-
-    if (y > 270) {
-      doc.addPage();
-      y = 10;
+// Enhanced download functions
+async function downloadProfileAsPDF(profile) {
+    try {
+        // Create PDF content using a simple approach
+        const content = generateProfileContent(profile);
+        
+        // Create a temporary element to trigger download
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${profile.personal.fullName.replace(/\s+/g, '_')}_Emergency_Profile.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        console.log('Profile downloaded as text file (PDF library not available)');
+    } catch (error) {
+        console.error('Error downloading profile:', error);
+        alert('Error downloading profile. Please try again.');
     }
-  });
+}
 
-  doc.save("emergency_profiles.pdf");
+async function downloadProfileAsImage(profile) {
+    try {
+        // Create a temporary container for the profile
+        const container = document.createElement('div');
+        container.style.cssText = `
+            width: 800px;
+            padding: 40px;
+            background: white;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            position: fixed;
+            top: -9999px;
+            left: -9999px;
+        `;
+        
+        container.innerHTML = generateProfileHTML(profile);
+        document.body.appendChild(container);
+        
+        // Use html2canvas if available, otherwise fallback
+        if (typeof html2canvas !== 'undefined') {
+            const canvas = await html2canvas(container, {
+                backgroundColor: '#ffffff',
+                scale: 2
+            });
+            
+            const link = document.createElement('a');
+            link.download = `${profile.personal.fullName.replace(/\s+/g, '_')}_Emergency_Profile.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        } else {
+            // Fallback to text download
+            await downloadProfileAsPDF(profile);
+        }
+        
+        document.body.removeChild(container);
+    } catch (error) {
+        console.error('Error downloading profile as image:', error);
+        alert('Error downloading profile as image. Please try again.');
+    }
+}
+
+function generateProfileContent(profile) {
+    const age = calculateAge(profile.personal.dob);
+    return `
+EMERGENCY MEDICAL PROFILE
+========================
+
+Personal Information:
+- Full Name: ${profile.personal.fullName}
+- Date of Birth: ${new Date(profile.personal.dob).toLocaleDateString()}
+- Age: ${age} years
+- Blood Type: ${profile.personal.bloodType}
+
+Medical Conditions:
+${profile.medical.conditions.length > 0 ? 
+    profile.medical.conditions.map(c => `- ${c}`).join('\n') : 
+    '- None reported'
+}
+
+Allergies:
+${profile.medical.allergies.length > 0 ? 
+    profile.medical.allergies.map(a => `- ${a}`).join('\n') : 
+    '- None reported'
+}
+
+Current Medications:
+${profile.medical.medications.length > 0 ? 
+    profile.medical.medications.map(m => `- ${m}`).join('\n') : 
+    '- None reported'
+}
+
+Emergency Contacts:
+${profile.emergencyContacts.map(contact => 
+    `- ${contact.name} (${contact.relationship}): ${contact.phone}`
+).join('\n')}
+
+Profile ID: ${profile._id}
+Last Updated: ${new Date(profile.updatedAt).toLocaleString()}
+
+⚠️ IMPORTANT: This is emergency medical information. 
+Please contact emergency services immediately for life-threatening situations.
+    `.trim();
+}
+
+function generateProfileHTML(profile) {
+    const age = calculateAge(profile.personal.dob);
+    return `
+        <div style="border: 3px solid #dc3545; border-radius: 12px; padding: 30px;">
+            <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #dc3545; padding-bottom: 20px;">
+                <h1 style="color: #dc3545; margin: 0; font-size: 28px;">🚨 EMERGENCY MEDICAL PROFILE</h1>
+                <h2 style="margin: 10px 0; font-size: 24px;">${profile.personal.fullName}</h2>
+                <p style="margin: 5px 0; font-size: 14px; color: #666;">Profile ID: ${profile._id}</p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                <div>
+                    <h3 style="color: #dc3545; border-bottom: 1px solid #ddd; padding-bottom: 5px;">Personal Details</h3>
+                    <p><strong>Date of Birth:</strong> ${new Date(profile.personal.dob).toLocaleDateString()}</p>
+                    <p><strong>Age:</strong> ${age} years</p>
+                    <p><strong>Blood Type:</strong> <span style="color: #dc3545; font-weight: bold; font-size: 18px;">${profile.personal.bloodType}</span></p>
+                </div>
+                
+                <div>
+                    <h3 style="color: #dc3545; border-bottom: 1px solid #ddd; padding-bottom: 5px;">Medical Conditions</h3>
+                    ${profile.medical.conditions.length > 0 ? 
+                        profile.medical.conditions.map(c => `<p>• ${c}</p>`).join('') : 
+                        '<p style="color: #666; font-style: italic;">None reported</p>'
+                    }
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                <div>
+                    <h3 style="color: #dc3545; border-bottom: 1px solid #ddd; padding-bottom: 5px;">⚠️ Allergies</h3>
+                    ${profile.medical.allergies.length > 0 ? 
+                        profile.medical.allergies.map(a => `<p style="color: #dc3545; font-weight: 600;">🚫 ${a}</p>`).join('') : 
+                        '<p style="color: #666; font-style: italic;">None reported</p>'
+                    }
+                </div>
+                
+                <div>
+                    <h3 style="color: #dc3545; border-bottom: 1px solid #ddd; padding-bottom: 5px;">Current Medications</h3>
+                    ${profile.medical.medications.length > 0 ? 
+                        profile.medical.medications.map(m => `<p>💊 ${m}</p>`).join('') : 
+                        '<p style="color: #666; font-style: italic;">None reported</p>'
+                    }
+                </div>
+            </div>
+            
+            <div>
+                <h3 style="color: #dc3545; border-bottom: 1px solid #ddd; padding-bottom: 5px;">🚨 Emergency Contacts</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                    ${profile.emergencyContacts.map(contact => `
+                        <div style="border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: #f8f9fa;">
+                            <h4 style="margin: 0 0 5px 0;">${contact.name}</h4>
+                            <p style="margin: 5px 0; color: #666;">${contact.relationship}</p>
+                            <p style="margin: 5px 0; font-weight: bold; color: #007bff;">📞 ${contact.phone}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #dc3545; text-align: center;">
+                <p style="font-size: 12px; color: #666;">Last Updated: ${new Date(profile.updatedAt).toLocaleString()}</p>
+                <p style="font-size: 14px; color: #dc3545; font-weight: bold;">⚠️ For emergencies, call your local emergency number immediately</p>
+            </div>
+        </div>
+    `;
+}
+
+function calculateAge(dob) {
+    const today = new Date();
+    const birthDate = new Date(dob);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    
+    return age;
+}
+
+// Profile download function (unified)
+function downloadProfile(profile) {
+    // Create download options modal
+    const modalOverlay = document.createElement('div');
+    modalOverlay.className = 'modal-overlay';
+    modalOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    `;
+
+    const modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+    modalContent.style.cssText = `
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    `;
+
+    modalContent.innerHTML = `
+        <h2>📥 Download Profile</h2>
+        <p>Choose download format for <strong>${profile.personal.fullName}</strong>'s profile:</p>
+        <div style="margin: 20px 0;">
+            <button id="downloadPDF" class="btn btn-primary" style="margin: 10px; width: 120px;">
+                📄 PDF/Text
+            </button>
+            <button id="downloadImage" class="btn btn-success" style="margin: 10px; width: 120px;">
+                🖼️ Image
+            </button>
+        </div>
+        <button id="cancelDownload" class="btn btn-secondary">Cancel</button>
+    `;
+
+    modalOverlay.appendChild(modalContent);
+    document.body.appendChild(modalOverlay);
+
+    // Handle download options
+    document.getElementById('downloadPDF').addEventListener('click', async () => {
+        modalOverlay.remove();
+        await downloadProfileAsPDF(profile);
+    });
+
+    document.getElementById('downloadImage').addEventListener('click', async () => {
+        modalOverlay.remove();
+        await downloadProfileAsImage(profile);
+    });
+
+    document.getElementById('cancelDownload').addEventListener('click', () => {
+        modalOverlay.remove();
+    });
+
+    // Close modal when clicking outside
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) {
+            modalOverlay.remove();
+        }
+    });
+}
+
+async function downloadAllProfilesAsPDF() {
+    try {
+        const profiles = await loadAllProfiles();
+        const profileArray = Object.values(profiles);
+        
+        if (profileArray.length === 0) {
+            alert('No profiles found to download.');
+            return;
+        }
+        
+        let allContent = 'EMERGENCY MEDICAL PROFILES - COMPLETE DATABASE\n';
+        allContent += '='.repeat(60) + '\n\n';
+        
+        profileArray.forEach((profile, index) => {
+            allContent += `PROFILE ${index + 1}\n`;
+            allContent += '-'.repeat(20) + '\n';
+            allContent += generateProfileContent(profile);
+            allContent += '\n\n' + '='.repeat(60) + '\n\n';
+        });
+        
+        const blob = new Blob([allContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `All_Emergency_Profiles_${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        console.log('All profiles downloaded successfully');
+    } catch (error) {
+        console.error('Error downloading all profiles:', error);
+        alert('Error downloading profiles. Please try again.');
+    }
 }
 
 async function downloadAllProfilesAsImage() {
-  const profiles = await loadAllProfiles();
-  const container = document.getElementById("profileContainer");
-  container.innerHTML = "";
-
-  profiles.forEach((profile, index) => {
-    const section = document.createElement("div");
-    section.style.marginBottom = "20px";
-    section.innerHTML = `
-      <h3>Emergency Profile ${index + 1}</h3>
-      <p><strong>Full Name:</strong> ${profile.personal.fullName}</p>
-      <p><strong>Age:</strong> ${profile.personal.age}</p>
-      <p><strong>Location:</strong> ${profile.personal.location}</p>
-      <p><strong>Emergency Contact:</strong> ${profile.emergency.contact}</p>
-      <p><strong>Phone:</strong> ${profile.emergency.phone}</p>
-    `;
-    container.appendChild(section);
-  });
-
-  container.style.display = "block";
-
-  await html2canvas(container).then(canvas => {
-    const link = document.createElement("a");
-    link.download = "emergency_profiles.png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-  });
-
-  container.style.display = "none";
+    try {
+        const profiles = await loadAllProfiles();
+        const profileArray = Object.values(profiles);
+        
+        if (profileArray.length === 0) {
+            alert('No profiles found to download.');
+            return;
+        }
+        
+        // For multiple profiles, create a summary image
+        const container = document.createElement('div');
+        container.style.cssText = `
+            width: 1200px;
+            padding: 40px;
+            background: white;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            position: fixed;
+            top: -9999px;
+            left: -9999px;
+        `;
+        
+        let summaryHTML = `
+            <div style="text-align: center; margin-bottom: 30px; border-bottom: 3px solid #dc3545; padding-bottom: 20px;">
+                <h1 style="color: #dc3545; margin: 0; font-size: 32px;">🚨 EMERGENCY PROFILES DATABASE</h1>
+                <p style="font-size: 16px; color: #666;">Total Profiles: ${profileArray.length}</p>
+                <p style="font-size: 14px; color: #666;">Generated: ${new Date().toLocaleString()}</p>
+            </div>
+        `;
+        
+        profileArray.forEach((profile, index) => {
+            const age = calculateAge(profile.personal.dob);
+            summaryHTML += `
+                <div style="border: 2px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: #f8f9fa;">
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 20px;">
+                        <div>
+                            <h3 style="color: #dc3545; margin: 0 0 10px 0;">${index + 1}. ${profile.personal.fullName}</h3>
+                            <p><strong>ID:</strong> ${profile._id}</p>
+                            <p><strong>Age:</strong> ${age} years | <strong>Blood Type:</strong> <span style="color: #dc3545; font-weight: bold;">${profile.personal.bloodType}</span></p>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0 0 5px 0; color: #dc3545;">Conditions</h4>
+                            ${profile.medical.conditions.length > 0 ? 
+                                profile.medical.conditions.map(c => `<p style="font-size: 12px; margin: 2px 0;">• ${c}</p>`).join('') : 
+                                '<p style="font-size: 12px; color: #666;">None</p>'
+                            }
+                        </div>
+                        <div>
+                            <h4 style="margin: 0 0 5px 0; color: #dc3545;">Emergency Contact</h4>
+                            ${profile.emergencyContacts.length > 0 ? 
+                                `<p style="font-size: 12px; margin: 2px 0;"><strong>${profile.emergencyContacts[0].name}</strong></p>
+                                 <p style="font-size: 12px; margin: 2px 0;">${profile.emergencyContacts[0].phone}</p>` :
+                                '<p style="font-size: 12px; color: #666;">None</p>'
+                            }
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = summaryHTML;
+        document.body.appendChild(container);
+        
+        if (typeof html2canvas !== 'undefined') {
+            const canvas = await html2canvas(container, {
+                backgroundColor: '#ffffff',
+                scale: 1.5,
+                width: 1200,
+                height: container.scrollHeight
+            });
+            
+            const link = document.createElement('a');
+            link.download = `All_Emergency_Profiles_${new Date().toISOString().split('T')[0]}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        } else {
+            // Fallback to text download
+            await downloadAllProfilesAsPDF();
+        }
+        
+        document.body.removeChild(container);
+    } catch (error) {
+        console.error('Error downloading all profiles as image:', error);
+        alert('Error downloading profiles as image. Please try again.');
+    }
 }
-
 
 // Enhanced Profile Management UI Functions
 function showUpdateProfileModal(profile) {
@@ -517,7 +880,7 @@ function showUpdateProfileModal(profile) {
         submitBtn.disabled = true;
 
         try {
-            const updatedData = {
+                        const updatedData = {
                 personal: {
                     fullName: document.getElementById('updateFullName').value,
                     dob: document.getElementById('updateDob').value,
@@ -539,9 +902,10 @@ function showUpdateProfileModal(profile) {
                 // Refresh the displayed profile
                 const refreshedProfile = await findProfileById(profile._id);
                 if (refreshedProfile) {
-                    currentProfile = refreshedProfile;
+                    window.currentProfile = refreshedProfile;
                     // Trigger a re-render of the profile display
-                    document.getElementById('searchBtn').click();
+                    const searchBtn = document.getElementById('searchBtn');
+                    if (searchBtn) searchBtn.click();
                 }
             } else {
                 throw new Error('Failed to update profile');
@@ -625,9 +989,12 @@ async function showDeleteConfirmation(profile) {
                 modalOverlay.remove();
                 
                 // Clear the search results
-                currentProfile = null;
-                document.getElementById('searchResults').classList.add('hidden');
-                document.getElementById('searchInput').value = '';
+                window.currentProfile = null;
+                const searchResults = document.getElementById('searchResults');
+                if (searchResults) searchResults.classList.add('hidden');
+                
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) searchInput.value = '';
                 
                 // Hide action buttons
                 const downloadBtn = document.getElementById('downloadProfileBtn');
@@ -792,6 +1159,9 @@ function displayMedicineSuggestions(suggestions, patientProfile = null) {
 
 // Enhanced Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize global variable for current profile
+    window.currentProfile = null;
+    
     if (document.getElementById('medicalForm')) {
         const medicalForm = document.getElementById('medicalForm');
         const addContactBtn = document.getElementById('addContactBtn');
@@ -882,50 +1252,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (document.getElementById('searchBtn')) {
         const searchBtn = document.getElementById('searchBtn');
-        const searchInput = document.getElementById('searchInput');
-        let currentProfile = null;
+        const searchByCode = document.getElementById('searchByCode');
+        const searchByName = document.getElementById('searchByName');
 
         searchBtn.addEventListener('click', async () => {
-            await performSearch();
+            const code = searchByCode.value.trim();
+            const name = searchByName.value.trim();
+            let searchTerm = code || name;
+            if (!searchTerm) return;
+            await performSearch(searchTerm);
         });
 
-        searchInput.addEventListener('keypress', async (e) => {
-            if (e.key === 'Enter') {
-                await performSearch();
-            }
+        [searchByCode, searchByName].forEach(input => {
+            input.addEventListener('keypress', async (e) => {
+                if (e.key === 'Enter') {
+                    const code = searchByCode.value.trim();
+                    const name = searchByName.value.trim();
+                    let searchTerm = code || name;
+                    if (!searchTerm) return;
+                    await performSearch(searchTerm);
+                }
+            });
         });
 
-        async function performSearch() {
+        async function performSearch(searchTerm) {
             const searchResults = document.getElementById('searchResults');
             const errorMessage = document.getElementById('errorMessage');
             const profileData = document.getElementById('profileData');
-
-            const id = searchInput.value.trim();
-            if (!id) return;
 
             searchBtn.textContent = 'Searching...';
             searchBtn.disabled = true;
 
             try {
-                const profile = await findProfileById(id);
+                const profile = await searchProfile(searchTerm);
 
                 if (profile) {
-                    currentProfile = profile;
-                    
-                    // Show action buttons
+                    window.currentProfile = profile;
+
                     const downloadBtn = document.getElementById('downloadProfileBtn');
                     const updateBtn = document.getElementById('updateProfileBtn');
                     const deleteBtn = document.getElementById('deleteProfileBtn');
-                    
+
                     if (downloadBtn) downloadBtn.style.display = 'inline-block';
                     if (updateBtn) updateBtn.style.display = 'inline-block';
                     if (deleteBtn) deleteBtn.style.display = 'inline-block';
-                    
+
+                    const age = calculateAge(profile.personal.dob);
+
                     profileData.innerHTML = `
-                        <div class="profile-display">
+                        <div class="profile-display" id="profileDisplayContainer">
                             <div class="profile-header">
                                 <h2>${profile.personal.fullName}</h2>
                                 <p>Emergency Medical Information</p>
+                                <p><strong>Profile ID:</strong> ${profile._id}</p>
                                 <small>Last updated: ${new Date(profile.updatedAt).toLocaleString()}</small>
                             </div>
 
@@ -934,6 +1313,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <h3>Personal Details</h3>
                                     <ul class="info-list">
                                         <li><strong>Date of Birth:</strong> ${new Date(profile.personal.dob).toLocaleDateString()}</li>
+                                        <li><strong>Age:</strong> ${age} years</li>
                                         <li><strong>Blood Type:</strong> <span style="color: #ff6b6b; font-weight: bold; font-size: 1.2em;">${profile.personal.bloodType}</span></li>
                                     </ul>
                                 </div>
@@ -987,17 +1367,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     searchResults.classList.remove('hidden');
                     errorMessage.classList.add('hidden');
                 } else {
-                    currentProfile = null;
-                    
-                    // Hide action buttons
+                    window.currentProfile = null;
+
                     const downloadBtn = document.getElementById('downloadProfileBtn');
                     const updateBtn = document.getElementById('updateProfileBtn');
                     const deleteBtn = document.getElementById('deleteProfileBtn');
-                    
+
                     if (downloadBtn) downloadBtn.style.display = 'none';
                     if (updateBtn) updateBtn.style.display = 'none';
                     if (deleteBtn) deleteBtn.style.display = 'none';
-                    
+
                     searchResults.classList.add('hidden');
                     errorMessage.classList.remove('hidden');
                 }
@@ -1009,38 +1388,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 searchBtn.disabled = false;
             }
         }
+    }
 
-        // Profile Action Buttons Setup
-        setupProfileActionButtons();
+    // Profile Action Buttons Setup
+    setupProfileActionButtons();
 
-        if (document.getElementById('getAiSuggestions')) {
-            document.getElementById('getAiSuggestions').addEventListener('click', async () => {
-                if (!currentProfile) {
-                    alert('Please search for a profile first');
-                    return;
-                }
+    if (document.getElementById('getAiSuggestions')) {
+        document.getElementById('getAiSuggestions').addEventListener('click', async () => {
+            if (!window.currentProfile) {
+                alert('Please search for a profile first');
+                return;
+            }
 
-                const button = document.getElementById('getAiSuggestions');
-                const btnText = button.querySelector('.btn-text');
-                const btnLoading = button.querySelector('.btn-loading');
-                const aiResults = document.getElementById('aiResults');
+            const button = document.getElementById('getAiSuggestions');
+            const btnText = button.querySelector('.btn-text');
+            const btnLoading = button.querySelector('.btn-loading');
+            const aiResults = document.getElementById('aiResults');
 
-                button.disabled = true;
-                btnText.classList.add('hidden');
-                btnLoading.classList.remove('hidden');
-                aiResults.classList.add('hidden');
+            button.disabled = true;
+            if (btnText) btnText.classList.add('hidden');
+            if (btnLoading) btnLoading.classList.remove('hidden');
+            if (aiResults) aiResults.classList.add('hidden');
 
-                try {
-                    const suggestions = await getMedicineSuggestions(
-                        currentProfile.medical.conditions,
-                        currentProfile.medical.allergies,
-                        currentProfile.medical.medications
-                    );
-                    
-                    displayMedicineSuggestions(suggestions, currentProfile);
-                    aiResults.classList.remove('hidden');
-                } catch (error) {
-                    console.error('AI Suggestion Error:', error);
+            try {
+                const suggestions = await getMedicineSuggestions(
+                    window.currentProfile.medical.conditions,
+                    window.currentProfile.medical.allergies,
+                    window.currentProfile.medical.medications
+                );
+                
+                displayMedicineSuggestions(suggestions, window.currentProfile);
+                if (aiResults) aiResults.classList.remove('hidden');
+            } catch (error) {
+                console.error('AI Suggestion Error:', error);
+                if (aiResults) {
                     aiResults.innerHTML = `
                         <div class="ai-disclaimer">
                             <strong>⚠️ Service Temporarily Unavailable</strong><br>
@@ -1048,69 +1429,381 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     `;
                     aiResults.classList.remove('hidden');
-                } finally {
-                    button.disabled = false;
-                    btnText.classList.remove('hidden');
-                    btnLoading.classList.add('hidden');
+                }
+            } finally {
+                button.disabled = false;
+                if (btnText) btnText.classList.remove('hidden');
+                if (btnLoading) btnLoading.classList.add('hidden');
+            }
+        });
+    }
+
+    // Profile action buttons setup function
+    function setupProfileActionButtons() {
+        // Download Profile Button
+        const downloadProfileDiv = document.getElementById('downloadProfile');
+        if (downloadProfileDiv) {
+            downloadProfileDiv.innerHTML = `
+                <button id="downloadProfileBtn" class="btn btn-success" style="display: none;">
+                    📥 Download Profile
+                </button>
+            `;
+
+            document.getElementById('downloadProfileBtn').addEventListener('click', () => {
+                if (window.currentProfile) {
+                    downloadProfile(window.currentProfile);
+                } else {
+                    alert('No profile loaded to download');
                 }
             });
         }
 
-        // Profile action buttons setup function
-        function setupProfileActionButtons() {
-            // Download Profile Button
-            const downloadProfileDiv = document.getElementById('downloadProfile');
-            if (downloadProfileDiv) {
-                downloadProfileDiv.innerHTML = `
-                    <button id="downloadProfileBtn" class="btn btn-success" style="display: none;">
-                        📥 Download Profile
-                    </button>
-                `;
+        // Update Profile Button
+        const updateProfileDiv = document.getElementById('updateProfile');
+        if (updateProfileDiv) {
+            updateProfileDiv.innerHTML = `
+                <button id="updateProfileBtn" class="btn btn-warning" style="display: none;">
+                    ✏️ Update Profile
+                </button>
+            `;
 
-                document.getElementById('downloadProfileBtn').addEventListener('click', () => {
-                    if (currentProfile) {
-                        downloadProfile(currentProfile);
-                    } else {
-                        alert('No profile loaded to download');
-                    }
-                });
+            document.getElementById('updateProfileBtn').addEventListener('click', () => {
+                if (window.currentProfile) {
+                    showUpdateProfileModal(window.currentProfile);
+                } else {
+                    alert('No profile loaded to update');
+                }
+            });
+        }
+
+        // Delete Profile Button
+        const deleteProfileDiv = document.getElementById('deleteProfile');
+        if (deleteProfileDiv) {
+            deleteProfileDiv.innerHTML = `
+                <button id="deleteProfileBtn" class="btn btn-danger" style="display: none;">
+                    🗑️ Delete Profile
+                </button>
+            `;
+
+            document.getElementById('deleteProfileBtn').addEventListener('click', async () => {
+                if (window.currentProfile) {
+                    await showDeleteConfirmation(window.currentProfile);
+                } else {
+                    alert('No profile loaded to delete');
+                }
+            });
+        }
+    }
+
+    // Bulk download buttons setup
+    const downloadAllPDFBtn = document.getElementById('downloadAllPDF');
+    if (downloadAllPDFBtn) {
+        downloadAllPDFBtn.addEventListener('click', async () => {
+            await downloadAllProfilesAsPDF();
+        });
+    }
+
+    const downloadAllImageBtn = document.getElementById('downloadAllImage');
+    if (downloadAllImageBtn) {
+        downloadAllImageBtn.addEventListener('click', async () => {
+            await downloadAllProfilesAsImage();
+        });
+    }
+});
+
+// Additional utility functions
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: bold;
+        z-index: 10000;
+        max-width: 300px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        transition: opacity 0.3s ease;
+    `;
+    
+    switch (type) {
+        case 'success':
+            notification.style.backgroundColor = '#28a745';
+            notification.innerHTML = `✅ ${message}`;
+            break;
+        case 'error':
+            notification.style.backgroundColor = '#dc3545';
+            notification.innerHTML = `❌ ${message}`;
+            break;
+        case 'warning':
+            notification.style.backgroundColor = '#ffc107';
+            notification.style.color = '#000';
+            notification.innerHTML = `⚠️ ${message}`;
+            break;
+        default:
+            notification.style.backgroundColor = '#17a2b8';
+            notification.innerHTML = `ℹ️ ${message}`;
+    }
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
             }
+        }, 300);
+    }, 3000);
+}
 
-            // Update Profile Button
-            const updateProfileDiv = document.getElementById('updateProfile');
-            if (updateProfileDiv) {
-                updateProfileDiv.innerHTML = `
-                    <button id="updateProfileBtn" class="btn btn-warning" style="display: none;">
-                        ✏️ Update Profile
-                    </button>
-                `;
+// Export functions for external use
+window.EmergencyProfileSystem = {
+    saveProfile,
+    searchProfile,
+    findProfileById,
+    findProfileByName,
+    updateProfile,
+    deleteProfile,
+    downloadProfile,
+    downloadAllProfilesAsPDF,
+    downloadAllProfilesAsImage,
+    getMedicineSuggestions,
+    loadAllProfiles,
+    showNotification
+};
 
-                document.getElementById('updateProfileBtn').addEventListener('click', () => {
-                    if (currentProfile) {
-                        showUpdateProfileModal(currentProfile);
-                    } else {
-                        alert('No profile loaded to update');
-                    }
-                });
-            }
+// Error handling for GitHub API
+window.addEventListener('unhandledrejection', (event) => {
+    console.error('Unhandled promise rejection:', event.reason);
+    if (event.reason && event.reason.message && event.reason.message.includes('GitHub API')) {
+        showNotification('GitHub sync failed, using local storage', 'warning');
+    }
+});
 
-            // Delete Profile Button
-            const deleteProfileDiv = document.getElementById('deleteProfile');
-            if (deleteProfileDiv) {
-                deleteProfileDiv.innerHTML = `
-                    <button id="deleteProfileBtn" class="btn btn-danger" style="display: none;">
-                        🗑️ Delete Profile
-                    </button>
-                `;
+// Periodic sync check (optional)
+let syncInterval;
+function startPeriodicSync(intervalMinutes = 30) {
+    if (syncInterval) clearInterval(syncInterval);
+    
+    syncInterval = setInterval(async () => {
+        try {
+            const profiles = await loadAllProfiles();
+            console.log(`Periodic sync check: ${Object.keys(profiles).length} profiles loaded`);
+        } catch (error) {
+            console.warn('Periodic sync failed:', error.message);
+        }
+    }, intervalMinutes * 60 * 1000);
+}
 
-                document.getElementById('deleteProfileBtn').addEventListener('click', async () => {
-                    if (currentProfile) {
-                        await showDeleteConfirmation(currentProfile);
-                    } else {
-                        alert('No profile loaded to delete');
-                    }
-                });
-            }
+// Auto-start periodic sync if GitHub is configured
+if (GITHUB_CONFIG.token && GITHUB_CONFIG.token !== 'your-github-token') {
+    startPeriodicSync();
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    // Ctrl/Cmd + K to focus search
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+        }
+    }
+    
+    // Escape to clear search
+    if (e.key === 'Escape') {
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+        if (searchInput && searchResults) {
+            searchInput.value = '';
+            searchResults.classList.add('hidden');
+            window.currentProfile = null;
+            
+            // Hide action buttons
+            const buttons = ['downloadProfileBtn', 'updateProfileBtn', 'deleteProfileBtn'];
+            buttons.forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) btn.style.display = 'none';
+            });
         }
     }
 });
+
+// Print profile function
+function printProfile(profile) {
+    if (!profile) {
+        alert('No profile loaded to print');
+        return;
+    }
+    
+    const printWindow = window.open('', '_blank');
+    const printContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Emergency Profile - ${profile.personal.fullName}</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    line-height: 1.6;
+                    margin: 20px;
+                    color: #333;
+                }
+                .header {
+                    text-align: center;
+                    border-bottom: 3px solid #dc3545;
+                    padding-bottom: 20px;
+                    margin-bottom: 30px;
+                }
+                .header h1 {
+                    color: #dc3545;
+                    margin: 0;
+                }
+                .section {
+                    margin-bottom: 25px;
+                    page-break-inside: avoid;
+                }
+                .section h3 {
+                    color: #dc3545;
+                    border-bottom: 1px solid #ddd;
+                    padding-bottom: 5px;
+                }
+                .contact-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 15px;
+                }
+                .contact-card {
+                    border: 1px solid #ddd;
+                    padding: 10px;
+                    border-radius: 5px;
+                }
+                .blood-type {
+                    color: #dc3545;
+                    font-weight: bold;
+                    font-size: 1.2em;
+                }
+                .allergy {
+                    color: #dc3545;
+                    font-weight: bold;
+                }
+                @media print {
+                    body { margin: 0; }
+                    .no-print { display: none; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>🚨 EMERGENCY MEDICAL PROFILE</h1>
+                <h2>${profile.personal.fullName}</h2>
+                <p>Profile ID: ${profile._id}</p>
+            </div>
+            
+            <div class="section">
+                <h3>Personal Information</h3>
+                <p><strong>Date of Birth:</strong> ${new Date(profile.personal.dob).toLocaleDateString()}</p>
+                <p><strong>Age:</strong> ${calculateAge(profile.personal.dob)} years</p>
+                <p><strong>Blood Type:</strong> <span class="blood-type">${profile.personal.bloodType}</span></p>
+            </div>
+            
+            <div class="section">
+                <h3>Medical Conditions</h3>
+                ${profile.medical.conditions.length > 0 ? 
+                    '<ul>' + profile.medical.conditions.map(c => `<li>${c}</li>`).join('') + '</ul>' : 
+                    '<p><em>None reported</em></p>'
+                }
+            </div>
+            
+            <div class="section">
+                <h3>⚠️ Allergies</h3>
+                ${profile.medical.allergies.length > 0 ? 
+                    '<ul>' + profile.medical.allergies.map(a => `<li class="allergy">🚫 ${a}</li>`).join('') + '</ul>' : 
+                    '<p><em>None reported</em></p>'
+                }
+            </div>
+            
+            <div class="section">
+                <h3>Current Medications</h3>
+                ${profile.medical.medications.length > 0 ? 
+                    '<ul>' + profile.medical.medications.map(m => `<li>💊 ${m}</li>`).join('') + '</ul>' : 
+                    '<p><em>None reported</em></p>'
+                }
+            </div>
+            
+            <div class="section">
+                <h3>🚨 Emergency Contacts</h3>
+                <div class="contact-grid">
+                    ${profile.emergencyContacts.map(contact => `
+                        <div class="contact-card">
+                            <h4>${contact.name}</h4>
+                            <p><strong>Relationship:</strong> ${contact.relationship}</p>
+                            <p><strong>Phone:</strong> ${contact.phone}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <div class="section">
+                <p style="text-align: center; font-size: 12px; color: #666; margin-top: 30px;">
+                    Last Updated: ${new Date(profile.updatedAt).toLocaleString()}<br>
+                    <strong>⚠️ For emergencies, call your local emergency number immediately</strong>
+                </p>
+            </div>
+            
+            <script>
+                window.onload = function() {
+                    window.print();
+                    // Close window after printing (optional)
+                    // window.onafterprint = function() { window.close(); };
+                }
+            </script>
+        </body>
+        </html>
+    `;
+    
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+}
+
+// Add print functionality to profile actions
+function setupPrintButton() {
+    const printProfileDiv = document.getElementById('printProfile');
+    if (printProfileDiv) {
+        printProfileDiv.innerHTML = `
+            <button id="printProfileBtn" class="btn btn-info" style="display: none;">
+                🖨️ Print Profile
+            </button>
+        `;
+
+        document.getElementById('printProfileBtn').addEventListener('click', () => {
+            if (window.currentProfile) {
+                printProfile(window.currentProfile);
+            } else {
+                alert('No profile loaded to print');
+            }
+        });
+    }
+}
+
+// Call setup function when DOM is loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupPrintButton);
+} else {
+    setupPrintButton();
+}
+
+// Debug function to list all profiles
+async function debugListProfiles() {
+    const profiles = await loadAllProfiles();
+    console.log('All profiles in database:');
+    Object.entries(profiles).forEach(([id, profile]) => {
+        console.log(`ID: ${id}, Name: ${profile.personal?.fullName || 'Unknown'}`);
+    });
+    return profiles;
+}

@@ -1,0 +1,262 @@
+/* Base Layout */
+.content {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Search Container */
+.search-container {
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 30px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+/* Search Box Layout */
+.search-box {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.search-box h2 {
+    text-align: center;
+    margin-bottom: 10px;
+    color: #ff6b6b;
+    font-size: 24px;
+}
+
+/* Input Groups */
+.search-input-group label {
+    display: block;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 6px;
+}
+
+.search-input-group input {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-sizing: border-box;
+    background: #f9f9f9;
+}
+
+.search-input-group input:focus {
+    border-color: #ff6b6b;
+    box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.2);
+    background: #fff;
+    outline: none;
+}
+
+/* Divider */
+.search-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 15px 0;
+    color: #888;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.search-divider::before,
+.search-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #ddd;
+}
+
+.search-divider::before {
+    margin-right: 10px;
+}
+
+.search-divider::after {
+    margin-left: 10px;
+}
+
+/* Search Button */
+.search-btn {
+    padding: 14px;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.search-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+}
+
+.search-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+
+/* Profile Actions */
+.profile-actions {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.profile-actions button {
+    flex: 1;
+    min-width: 150px;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.btn-download {
+    background: #666;
+    color: white;
+}
+
+.btn-download:hover {
+    background: #444;
+    transform: translateY(-1px);
+}
+
+.btn-update {
+    background: #999;
+    color: #000;
+}
+
+.btn-update:hover {
+    background: #777;
+    transform: translateY(-1px);
+}
+
+.btn-delete {
+    background: #b23b3b;
+    color: white;
+}
+
+.btn-delete:hover {
+    background: #8a2c2c;
+    transform: translateY(-1px);
+}
+
+.btn-print {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-print:hover {
+    background: #495057;
+    transform: translateY(-1px);
+}
+
+/* Bulk Download Section */
+.bulk-download {
+    background: #f1f1f1;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 30px;
+    text-align: center;
+}
+
+.bulk-download h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+}
+
+.bulk-download-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.bulk-download-buttons button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-bulk-json {
+    background: #6f42c1;
+    color: white;
+}
+
+.btn-bulk-json:hover {
+    background: #5a2d91;
+    transform: translateY(-1px);
+}
+
+.btn-bulk-pdf {
+    background: #fd7e14;
+    color: white;
+}
+
+.btn-bulk-pdf:hover {
+    background: #e8590c;
+    transform: translateY(-1px);
+}
+
+.btn-bulk-image {
+    background: #20c997;
+    color: white;
+}
+
+.btn-bulk-image:hover {
+    background: #1aa085;
+    transform: translateY(-1px);
+}
+
+/* Debug Panel */
+.debug-panel {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.debug-button {
+    background: #888;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-bottom: 10px;
+}
+
+/* Modal Animation */
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
