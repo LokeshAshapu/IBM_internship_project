@@ -93,20 +93,20 @@ function findProfileById(id) {
     return allProfiles[id.toUpperCase()] || null;
 }
 
-function updateProfile(id, updatedData) {
-    const allProfiles = loadAllProfiles();
+// function updateProfile(id, updatedData) {
+//     const allProfiles = loadAllProfiles();
 
-    if (!allProfiles[id.toUpperCase()]) return false;
+//     if (!allProfiles[id.toUpperCase()]) return false;
 
-    allProfiles[id.toUpperCase()] = {
-        ...allProfiles[id.toUpperCase()],
-        ...updatedData,
-        updatedAt: new Date().toISOString()
-    };
+//     allProfiles[id.toUpperCase()] = {
+//         ...allProfiles[id.toUpperCase()],
+//         ...updatedData,
+//         updatedAt: new Date().toISOString()
+//     };
 
-    saveAllProfiles(allProfiles);
-    return true;
-}
+//     saveAllProfiles(allProfiles);
+//     return true;
+// }
 
 function deleteProfile(id) {
     const allProfiles = loadAllProfiles();
@@ -142,12 +142,7 @@ function downloadProfile(profileData) {
 // AI Medicine Suggestion Functions
 async function getMedicineSuggestions(conditions, allergies = []) {
     try {
-        // For demonstration, we'll use mock responses
-        // In production, you would call a real AI API
         return await getMockAISuggestions(conditions, allergies);
-        
-        // Uncomment below for real AI API integration
-        // return await getRealAISuggestions(conditions, allergies);
     } catch (error) {
         console.error('AI API Error:', error);
         throw new Error('Unable to get AI suggestions at this time');
@@ -155,14 +150,12 @@ async function getMedicineSuggestions(conditions, allergies = []) {
 }
 
 async function getMockAISuggestions(conditions, allergies) {
-    // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     const suggestions = [];
     const processedConditions = conditions.map(c => c.toLowerCase());
     
     processedConditions.forEach(condition => {
-        // Find matching conditions in our mock database
         Object.keys(MOCK_AI_RESPONSES).forEach(key => {
             if (condition.includes(key) || key.includes(condition)) {
                 suggestions.push(...MOCK_AI_RESPONSES[key]);
@@ -170,7 +163,6 @@ async function getMockAISuggestions(conditions, allergies) {
         });
     });
     
-    // If no specific matches, provide general suggestions
     if (suggestions.length === 0) {
         suggestions.push({
             name: "General Health Assessment Needed",
@@ -180,7 +172,6 @@ async function getMockAISuggestions(conditions, allergies) {
         });
     }
     
-    // Filter out medicines that might conflict with allergies
     const filteredSuggestions = suggestions.filter(med => {
         return !allergies.some(allergy => 
             med.name.toLowerCase().includes(allergy.toLowerCase())
@@ -213,16 +204,10 @@ async function getRealAISuggestions(conditions, allergies) {
     }
     
     const data = await response.json();
-    
-    // Process the AI response and extract medication suggestions
-    // This would need to be adapted based on the specific AI API response format
     return parseAIResponse(data);
 }
 
 function parseAIResponse(aiResponse) {
-    // This function would parse the AI API response
-    // Implementation depends on the specific AI service used
-    // For now, return mock data as fallback
     return MOCK_AI_RESPONSES.diabetes;
 }
 
@@ -263,16 +248,13 @@ function displayMedicineSuggestions(suggestions) {
     `;
 }
 
-// Application logic
 document.addEventListener('DOMContentLoaded', () => {
-    // Handle form submission on index.html
     if (document.getElementById('medicalForm')) {
         const medicalForm = document.getElementById('medicalForm');
         const addContactBtn = document.getElementById('addContactBtn');
         const contactsContainer = document.getElementById('contactsContainer');
         let contactCount = 1;
 
-        // Add new contact field
         addContactBtn.addEventListener('click', () => {
             contactCount++;
             const newContact = document.createElement('div');
@@ -300,11 +282,9 @@ document.addEventListener('DOMContentLoaded', () => {
             contactsContainer.appendChild(newContact);
         });
 
-        // Remove contact field
         contactsContainer.addEventListener('click', (e) => {
             if (e.target.classList.contains('remove-contact')) {
                 e.target.closest('.contact-entry').remove();
-                // Renumber contacts
                 const contacts = contactsContainer.querySelectorAll('.contact-entry');
                 contacts.forEach((contact, index) => {
                     contact.querySelector('h3').textContent = `Contact ${index + 1}`;
@@ -313,18 +293,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Form submission
         medicalForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // Gather all contact information
             const contacts = Array.from(document.querySelectorAll('.contact-entry')).map(entry => ({
                 name: entry.querySelector('.contact-name').value,
                 phone: entry.querySelector('.contact-phone').value,
                 relationship: entry.querySelector('.contact-relationship').value
             }));
 
-            // Prepare profile data
             const profileData = {
                 personal: {
                     fullName: document.getElementById('fullName').value,
@@ -340,10 +317,8 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             try {
-                // Save to storage
                 const uniqueId = saveProfile(profileData);
 
-                // Show success message
                 document.getElementById('medicalForm').classList.add('hidden');
                 document.getElementById('uniqueCode').textContent = uniqueId;
                 document.getElementById('successMessage').classList.remove('hidden');
@@ -354,17 +329,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Handle search on search.html
     if (document.getElementById('searchBtn')) {
         const searchBtn = document.getElementById('searchBtn');
         const searchInput = document.getElementById('searchInput');
-        let currentProfile = null; // Store current profile for AI suggestions
+        let currentProfile = null;
 
         searchBtn.addEventListener('click', () => {
             performSearch();
         });
 
-        // Allow search on Enter key press
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 performSearch();
@@ -383,9 +356,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const profile = findProfileById(id);
 
                 if (profile) {
-                    currentProfile = profile; // Store for AI suggestions
+                    currentProfile = profile;
                     
-                    // Display the profile information
                     profileData.innerHTML = `
                         <div class="profile-display">
                             <div class="profile-header">
@@ -461,7 +433,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Handle AI suggestions
         if (document.getElementById('getAiSuggestions')) {
             document.getElementById('getAiSuggestions').addEventListener('click', async () => {
                 if (!currentProfile) {
@@ -474,7 +445,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const btnLoading = button.querySelector('.btn-loading');
                 const aiResults = document.getElementById('aiResults');
 
-                // Show loading state
                 button.disabled = true;
                 btnText.classList.add('hidden');
                 btnLoading.classList.remove('hidden');
@@ -498,7 +468,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     `;
                     aiResults.classList.remove('hidden');
                 } finally {
-                    // Reset button state
                     button.disabled = false;
                     btnText.classList.remove('hidden');
                     btnLoading.classList.add('hidden');
