@@ -42,3 +42,15 @@ The goal of this project was to apply core web development skills learned throug
 
 ## ProtoType(Figma)
 [Proto Type](https://www.figma.com/proto/McgP0JQodBkANO17plqz60/Emergency-Medical-Profile?node-id=1-2&p=f&t=skNktnt6fqTXOqvn-0&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1)
+
+
+
+## Images of Site 
+[Home Page](https://drive.google.com/file/d/1Uqtai_r1CHRQsmc8znW0HuyVjpfEG9jU/view?usp=drive_link)
+[Home Page Continution](https://drive.google.com/file/d/1F-PGI5drkYhXUuDPtwgBspi5ABM61Fl7/view?usp=drive_link)}
+
+[Search Page](https://drive.google.com/file/d/1_doxJKIuh-nfUKI5ykwUlzjiTdu0gAIN/view?usp=drive_link)
+
+
+[Demo Profile Card After Download As an Image](https://drive.google.com/file/d/17Bm98vbECiqB4wpG82yIIlMfi8G_FZHH/view?usp=drive_link)
+
