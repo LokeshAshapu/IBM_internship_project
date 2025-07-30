@@ -47,7 +47,7 @@ The goal of this project was to apply core web development skills learned throug
 
 ## Images of Site 
 [Home Page](https://drive.google.com/file/d/1Uqtai_r1CHRQsmc8znW0HuyVjpfEG9jU/view?usp=drive_link)
-[Home Page Continution](https://drive.google.com/file/d/1F-PGI5drkYhXUuDPtwgBspi5ABM61Fl7/view?usp=drive_link)}
+[Home Page Continution](https://drive.google.com/file/d/1F-PGI5drkYhXUuDPtwgBspi5ABM61Fl7/view?usp=drive_link)
 
 [Search Page](https://drive.google.com/file/d/1_doxJKIuh-nfUKI5ykwUlzjiTdu0gAIN/view?usp=drive_link)
 
