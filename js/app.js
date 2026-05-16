@@ -1240,6 +1240,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('medicalForm').classList.add('hidden');
                 document.getElementById('uniqueCode').textContent = uniqueId;
                 document.getElementById('successMessage').classList.remove('hidden');
+                
+                // Generate QR code
+                generateQRCode(uniqueId);
             } catch (error) {
                 alert('Error saving profile. Please try again.');
                 console.error(error);
@@ -1248,6 +1251,59 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.disabled = false;
             }
         });
+    }
+
+    // QR Code Download Handlers
+    const downloadQRBtn = document.getElementById('downloadQR');
+    if (downloadQRBtn) {
+        downloadQRBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            downloadQRCode();
+        });
+    }
+
+    // QR Share Button Handler
+    const shareQRBtn = document.getElementById('shareQR');
+    if (shareQRBtn) {
+        shareQRBtn.addEventListener('click', async () => {
+            const viewLink = document.getElementById('viewProfileLink');
+            if (viewLink && viewLink.href) {
+                try {
+                    if (navigator.share) {
+                        // Use Web Share API if available
+                        await navigator.share({
+                            title: 'Emergency Medical Profile',
+                            text: 'Scan or click to view my emergency medical profile',
+                            url: viewLink.href
+                        });
+                    } else {
+                        // Fallback: copy to clipboard
+                        await navigator.clipboard.writeText(viewLink.href);
+                        alert('Profile link copied to clipboard!');
+                    }
+                } catch (error) {
+                    console.error('Error sharing:', error);
+                    if (error.name !== 'AbortError') {
+                        alert('Could not share. Link copied to clipboard instead.');
+                    }
+                }
+            }
+        });
+    }
+
+    // Download Profile Buttons - handlers for success message buttons
+    const successMessage = document.getElementById('successMessage');
+    if (successMessage) {
+        // Add event listeners to buttons that are now in the HTML
+        const downloadPDFBtn = document.getElementById('downloadProfilePDFBtn');
+        const downloadCSVBtn = document.getElementById('downloadProfileCSVBtn');
+        
+        if (downloadPDFBtn) {
+            downloadPDFBtn.addEventListener('click', downloadProfilePDF);
+        }
+        if (downloadCSVBtn) {
+            downloadCSVBtn.addEventListener('click', downloadProfileCSV);
+        }
     }
 
     if (document.getElementById('searchBtn')) {
@@ -1806,4 +1862,409 @@ async function debugListProfiles() {
         console.log(`ID: ${id}, Name: ${profile.personal?.fullName || 'Unknown'}`);
     });
     return profiles;
+}
+
+// ===== QR CODE FUNCTIONS =====
+
+/**
+ * Copy text to clipboard with user feedback
+ */
+function copyToClipboard(elementId, successMessage = 'Copied!') {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    let text = element.value || element.textContent;
+    
+    if (navigator.clipboard && window.isSecureContext) {
+        // Use Clipboard API if available (secure)
+        navigator.clipboard.writeText(text).then(() => {
+            showToast(successMessage);
+        }).catch(err => {
+            console.error('Clipboard copy failed:', err);
+            fallbackCopy(text);
+        });
+    } else {
+        // Fallback method
+        fallbackCopy(text);
+    }
+}
+
+/**
+ * Fallback copy method for older browsers
+ */
+function fallbackCopy(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    
+    try {
+        document.execCommand('copy');
+        showToast('Copied to clipboard!');
+    } catch (err) {
+        console.error('Fallback copy failed:', err);
+        alert('Could not copy - please copy manually: ' + text);
+    }
+    
+    document.body.removeChild(textarea);
+}
+
+/**
+ * Show toast notification
+ */
+function showToast(message, duration = 2000) {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #323232;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-size: 14px;
+        z-index: 9999;
+        animation: slideIn 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => document.body.removeChild(toast), 300);
+    }, duration);
+}
+
+// Add CSS animations for toast
+if (!document.getElementById('toast-styles')) {
+    const style = document.createElement('style');
+    style.id = 'toast-styles';
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(400px); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// ===== QR CODE FUNCTIONS =====
+
+/**
+ * Generate QR code for profile sharing
+ * Uses Google Chart API for QR generation
+ */
+function generateQRCode(profileId) {
+    const container = document.getElementById('qrContainer');
+    if (!container) return;
+    
+    // Clear previous QR if any
+    container.innerHTML = '';
+    
+    try {
+        // Create QR link - relative URL for better portability
+        const qrLink = `view.html?code=${encodeURIComponent(profileId)}`;
+        const qrURL = `https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=${encodeURIComponent(qrLink)}`;
+        
+        // Create QR image element
+        const qrImg = document.createElement('img');
+        qrImg.src = qrURL;
+        qrImg.alt = 'Emergency Profile QR Code';
+        qrImg.className = 'qr-code-img';
+        qrImg.style.maxWidth = '100%';
+        qrImg.style.height = 'auto';
+        
+        // Add error handling
+        qrImg.onerror = function() {
+            container.innerHTML = '<p style="color: red;">Failed to generate QR code. Please try again.</p>';
+            console.error('Failed to load QR code image');
+        };
+        
+        qrImg.onload = function() {
+            // Set download link
+            const downloadBtn = document.getElementById('downloadQR');
+            if (downloadBtn) {
+                downloadBtn.href = qrURL;
+            }
+            
+            // Set view profile link
+            const viewLink = document.getElementById('viewProfileLink');
+            if (viewLink) {
+                // viewProfileLink is an input field, set value instead of href
+                viewLink.value = qrLink;
+            }
+        };
+        
+        container.appendChild(qrImg);
+        
+        // Show QR section if hidden
+        const qrSection = document.getElementById('qrSection');
+        if (qrSection) {
+            qrSection.classList.remove('hidden');
+        }
+    } catch (error) {
+        console.error('Error generating QR code:', error);
+        container.innerHTML = '<p style="color: red;">Error generating QR code. Please refresh and try again.</p>';
+    }
+}
+
+/**
+ * Download QR code as image
+ */
+function downloadQRCode() {
+    const qrImg = document.querySelector('#qrContainer img');
+    if (!qrImg) {
+        alert('QR code not found. Please create a profile first.');
+        return;
+    }
+    
+    // Use canvas to convert QR image to PNG
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        link.download = `emergency-card-qr-${new Date().getTime()}.png`;
+        link.click();
+    };
+    img.onerror = function() {
+        alert('Unable to download QR code. Please try again.');
+        console.error('Failed to load QR image for download');
+    };
+    img.src = qrImg.src;
+}
+
+/**
+ * Generate PDF report of profile
+ */
+async function downloadProfilePDF() {
+    try {
+        // Get unique code from DOM
+        const uniqueCode = document.getElementById('uniqueCode')?.textContent;
+        if (!uniqueCode) {
+            alert('Profile code not found');
+            return;
+        }
+        
+        // Load profile data
+        const profile = await findProfileById(uniqueCode);
+        if (!profile) {
+            alert('Profile not found');
+            return;
+        }
+        
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        let yPosition = 20;
+        
+        // Helper function to add text with wrapping
+        function addWrappedText(text, x, y, maxWidth, fontSize = 11) {
+            doc.setFontSize(fontSize);
+            const lines = doc.splitTextToSize(text, maxWidth);
+            doc.text(lines, x, y);
+            return y + (lines.length * 7);
+        }
+        
+        // Header
+        doc.setTextColor(33, 66, 99);
+        doc.setFontSize(16);
+        doc.text('🚑 Emergency Medical Profile Report', pageWidth / 2, yPosition, { align: 'center' });
+        yPosition += 15;
+        
+        // Profile Code
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.text(`Access Code: ${profile._id}`, pageWidth / 2, yPosition, { align: 'center' });
+        doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, yPosition + 6, { align: 'center' });
+        yPosition += 18;
+        
+        // Personal Information
+        doc.setFontSize(12);
+        doc.setTextColor(33, 66, 99);
+        doc.text('Personal Information', 15, yPosition);
+        yPosition += 8;
+        
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.text(`Name: ${profile.personal.fullName}`, 15, yPosition);
+        yPosition += 6;
+        doc.text(`DOB: ${profile.personal.dob}`, 15, yPosition);
+        yPosition += 6;
+        doc.text(`Blood Type: ${profile.personal.bloodType}`, 15, yPosition);
+        yPosition += 12;
+        
+        // Medical Information
+        doc.setFontSize(12);
+        doc.setTextColor(33, 66, 99);
+        doc.text('Medical Information', 15, yPosition);
+        yPosition += 8;
+        
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        
+        // Conditions
+        if (profile.medical.conditions?.length > 0) {
+            doc.text('Chronic Conditions:', 15, yPosition);
+            yPosition += 5;
+            profile.medical.conditions.forEach(condition => {
+                doc.text(`• ${condition}`, 20, yPosition);
+                yPosition += 5;
+            });
+            yPosition += 2;
+        }
+        
+        // Allergies
+        if (profile.medical.allergies?.length > 0) {
+            doc.text('Allergies:', 15, yPosition);
+            yPosition += 5;
+            profile.medical.allergies.forEach(allergy => {
+                doc.text(`• ${allergy}`, 20, yPosition);
+                yPosition += 5;
+            });
+            yPosition += 2;
+        }
+        
+        // Medications
+        if (profile.medical.medications?.length > 0) {
+            doc.text('Current Medications:', 15, yPosition);
+            yPosition += 5;
+            profile.medical.medications.forEach(med => {
+                const lines = doc.splitTextToSize(`• ${med}`, pageWidth - 30);
+                lines.forEach(line => {
+                    if (yPosition > pageHeight - 15) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                    doc.text(line, 20, yPosition);
+                    yPosition += 5;
+                });
+            });
+            yPosition += 5;
+        }
+        
+        // Emergency Contacts
+        if (profile.emergencyContacts?.length > 0) {
+            doc.setFontSize(12);
+            doc.setTextColor(33, 66, 99);
+            doc.text('Emergency Contacts', 15, yPosition);
+            yPosition += 8;
+            
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            profile.emergencyContacts.forEach((contact, index) => {
+                if (yPosition > pageHeight - 20) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+                doc.text(`Contact ${index + 1}: ${contact.name}`, 15, yPosition);
+                yPosition += 5;
+                doc.text(`Phone: ${contact.phone}`, 20, yPosition);
+                yPosition += 5;
+                doc.text(`Relationship: ${contact.relationship}`, 20, yPosition);
+                yPosition += 7;
+            });
+        }
+        
+        // Footer
+        doc.setFontSize(8);
+        doc.setTextColor(128, 128, 128);
+        doc.text('Keep this document secure and share only with trusted individuals', pageWidth / 2, pageHeight - 10, { align: 'center' });
+        
+        // Download
+        const fileName = `Emergency-Profile-${profile.personal.fullName.replace(/\s+/g, '-')}-${new Date().getTime()}.pdf`;
+        doc.save(fileName);
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        alert('Error generating PDF. Please try again.');
+    }
+}
+
+/**
+ * Download profile as CSV
+ */
+async function downloadProfileCSV() {
+    try {
+        const uniqueCode = document.getElementById('uniqueCode')?.textContent;
+        if (!uniqueCode) {
+            alert('Profile code not found');
+            return;
+        }
+        
+        const profile = await findProfileById(uniqueCode);
+        if (!profile) {
+            alert('Profile not found');
+            return;
+        }
+        
+        let csvContent = 'data:text/csv;charset=utf-8,';
+        
+        // Headers
+        csvContent += 'Emergency Medical Profile Report\n';
+        csvContent += `Generated: ${new Date().toLocaleString()}\n`;
+        csvContent += `Access Code: ${profile._id}\n\n`;
+        
+        // Personal Information
+        csvContent += 'PERSONAL INFORMATION\n';
+        csvContent += `Full Name,${escapeCSV(profile.personal.fullName)}\n`;
+        csvContent += `Date of Birth,${profile.personal.dob}\n`;
+        csvContent += `Blood Type,${profile.personal.bloodType}\n\n`;
+        
+        // Medical Information
+        csvContent += 'MEDICAL INFORMATION\n';
+        csvContent += 'Chronic Conditions\n';
+        profile.medical.conditions?.forEach(condition => {
+            csvContent += `,${escapeCSV(condition)}\n`;
+        });
+        csvContent += '\nAllergies\n';
+        profile.medical.allergies?.forEach(allergy => {
+            csvContent += `,${escapeCSV(allergy)}\n`;
+        });
+        csvContent += '\nCurrent Medications\n';
+        profile.medical.medications?.forEach(med => {
+            csvContent += `,${escapeCSV(med)}\n`;
+        });
+        
+        // Emergency Contacts
+        csvContent += '\nEMERGENCY CONTACTS\n';
+        csvContent += 'Name,Phone,Relationship\n';
+        profile.emergencyContacts?.forEach(contact => {
+            csvContent += `${escapeCSV(contact.name)},${escapeCSV(contact.phone)},${escapeCSV(contact.relationship)}\n`;
+        });
+        
+        // Download
+        const link = document.createElement('a');
+        link.href = encodeURI(csvContent);
+        link.download = `Emergency-Profile-${profile.personal.fullName.replace(/\s+/g, '-')}-${new Date().getTime()}.csv`;
+        link.click();
+    } catch (error) {
+        console.error('Error generating CSV:', error);
+        alert('Error generating CSV. Please try again.');
+    }
+}
+
+/**
+ * Helper function to escape CSV values
+ */
+function escapeCSV(value) {
+    if (!value) return '';
+    const stringValue = String(value);
+    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+    }
+    return stringValue;
 }

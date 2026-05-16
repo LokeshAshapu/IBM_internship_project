@@ -1,0 +1,486 @@
+/* Premium main stylesheet */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+:root {
+  --primary: hsl(210, 70%, 55%);
+  --primary-dark: hsl(210, 70%, 45%);
+  --bg-gradient: linear-gradient(135deg, hsl(210, 80%, 95%), hsl(210, 70%, 85%));
+  --text-color: #2b2b2b;
+  --radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-gradient);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+header {
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+h1 {
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--primary);
+}
+
+p.lead {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.cta-button {
+  background: var(--primary);
+  color: #fff;
+  padding: 0.8rem 2rem;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.cta-button:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+section.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem 1rem;
+}
+
+.feature-card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  transition: transform 0.2s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+}
+
+.feature-card h3 {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+  color: var(--primary);
+}
+
+footer {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.9rem;
+  color: #555;
+  margin-top: 3rem;
+}
+
+/* QR Code Section Styling */
+.qr-section {
+  background: white;
+  border-radius: var(--radius);
+  padding: 2rem;
+  margin-top: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.qr-section.hidden {
+  display: none;
+}
+
+.qr-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+
+.qr-container {
+  text-align: center;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 12px;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-code-img {
+  max-width: 300px;
+  width: 100%;
+  height: auto;
+  border: 3px solid white;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  background: white;
+  padding: 10px;
+}
+
+.qr-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 1.5rem 0;
+}
+
+.qr-btn {
+  padding: 0.8rem 1.5rem;
+  font-size: 0.95rem;
+  margin: 5px;
+  min-width: 150px;
+}
+
+.qr-share-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.qr-share-btn:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-2px);
+}
+
+.qr-hint {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #666;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.qr-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.qr-link:hover {
+  text-decoration: underline;
+}
+
+/* Success Message Styling */
+.success-message {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  border: 2px solid #28a745;
+  border-radius: var(--radius);
+  padding: 2rem;
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.success-message.hidden {
+  display: none;
+}
+
+.success-message h2 {
+  color: #155724;
+  margin-bottom: 1rem;
+}
+
+.unique-code {
+  background: white;
+  border: 2px solid #28a745;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #155724;
+  font-family: 'Courier New', monospace;
+  word-break: break-all;
+}
+
+@media (max-width: 600px) {
+  h1 { font-size: 2.2rem; }
+  .cta-button { width: 100%; }
+  
+  .qr-container {
+    min-height: 250px;
+  }
+  
+  .qr-code-img {
+    max-width: 250px;
+  }
+  
+  .qr-actions {
+    flex-direction: column;
+  }
+  
+  .qr-btn {
+    width: 100%;
+  }
+  
+  .qr-section {
+    padding: 1.5rem;
+  }
+  
+  .success-message {
+    padding: 1.5rem;
+  }
+}
+
+/* Accessibility Improvements */
+.cta-button:focus,
+.qr-btn:focus {
+  outline: 3px solid #FFC107;
+  outline-offset: 2px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Enhanced UX Styling */
+.quick-access-section {
+  background: #E8F5E9;
+  border-left: 4px solid #4CAF50;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.access-code-box {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.access-label {
+  font-weight: 600;
+  color: #2E7D32;
+  margin-bottom: 0.5rem;
+}
+
+.copy-btn, .copy-link-btn {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.copy-btn:hover, .copy-link-btn:hover {
+  background: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.security-note {
+  background: #FFF3E0;
+  border-left: 3px solid #FF9800;
+  padding: 1rem;
+  border-radius: 6px;
+  color: #E65100;
+  font-weight: 500;
+}
+
+.qr-title {
+  font-size: 1.4rem;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.qr-instructions {
+  text-align: center;
+  color: #666;
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+
+.qr-main-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #2196F3, #1976D2);
+  font-size: 1.05rem;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #1976D2, #1565C0);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(25, 118, 210, 0.4);
+}
+
+.btn-share {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  font-size: 1.05rem;
+}
+
+.btn-share:hover {
+  background: linear-gradient(135deg, #764ba2, #667eea);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(118, 75, 162, 0.4);
+}
+
+.download-section {
+  background: #F5F5F5;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.download-label {
+  text-align: center;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.download-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+.download-btn {
+  padding: 1rem;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  color: #333;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.download-btn:hover {
+  border-color: var(--primary);
+  background: #E3F2FD;
+  color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.qr-download {
+  border-color: #FF9800;
+}
+
+.qr-download:hover {
+  background: #FFF3E0;
+  color: #FF9800;
+  border-color: #FF9800;
+}
+
+.pdf-download {
+  border-color: #F44336;
+}
+
+.pdf-download:hover {
+  background: #FFEBEE;
+  color: #F44336;
+  border-color: #F44336;
+}
+
+.csv-download {
+  border-color: #4CAF50;
+}
+
+.csv-download:hover {
+  background: #E8F5E9;
+  color: #4CAF50;
+  border-color: #4CAF50;
+}
+
+.direct-link-section {
+  background: #E3F2FD;
+  border-left: 4px solid var(--primary);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+}
+
+.link-label {
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 0.8rem;
+}
+
+.link-box {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.link-input {
+  flex: 1;
+  padding: 0.8rem;
+  border: 1px solid #BBB;
+  border-radius: 6px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  word-break: break-all;
+  background: white;
+  color: #333;
+}
+
+.link-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+  .qr-main-actions {
+    grid-template-columns: 1fr;
+  }
+  
+  .download-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .link-box {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .copy-link-btn {
+    width: 100%;
+  }
+  
+  .quick-access-section {
+    padding: 1rem;
+  }
+  
+  .download-section {
+    padding: 1rem;
+  }
+  
+  .direct-link-section {
+    padding: 1rem;
+  }
+}
