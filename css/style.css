@@ -1,3 +1,43 @@
+/* =============================================
+   SHARED DESIGN TOKENS — used by all pages
+   ============================================= */
+:root {
+    /* Brand / Primary — emergency red-orange */
+    --primary:        #ff6b6b;
+    --primary-dark:   #ee5a24;
+    --primary-light:  #ffecec;
+
+    /* Accent — used for info / links */
+    --accent:         #e84393;       /* kept subtle, won't clash */
+    --accent-dark:    #c73277;
+
+    /* Backgrounds */
+    --body-bg:        linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --header-bg:      linear-gradient(135deg, #ff6b6b, #ee5a24);
+    --card-bg:        #ffffff;
+    --muted-bg:       #f8f9fa;
+
+    /* Text */
+    --text-main:      #333333;
+    --text-muted:     #666666;
+    --text-on-primary:#ffffff;
+
+    /* Borders & Shadows */
+    --border-color:   #e9ecef;
+    --shadow-sm:      0 2px 8px  rgba(0,0,0,0.08);
+    --shadow-md:      0 10px 30px rgba(0,0,0,0.12);
+
+    /* Shape */
+    --radius-sm:      6px;
+    --radius-md:      10px;
+    --radius-lg:      15px;
+
+    /* Success / Warning / Danger */
+    --success:        #28a745;
+    --danger:         #dc3545;
+    --warning:        #fd7e14;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -7,8 +47,8 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
-    color: #333;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: var(--text-main);
+    background: var(--body-bg);
     min-height: 100vh;
     padding: 20px;
 }
@@ -16,15 +56,15 @@ body {
 .container {
     max-width: 800px;
     margin: 0 auto;
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
     overflow: hidden;
 }
 
 .header {
-    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-    color: white;
+    background: var(--header-bg);
+    color: var(--text-on-primary);
     padding: 30px;
     text-align: center;
 }
@@ -59,9 +99,9 @@ body {
 }
 
 .nav-tab.active {
-    background: white;
-    color: #333;
-    border-bottom: 3px solid #ff6b6b;
+    background: var(--card-bg);
+    color: var(--text-main);
+    border-bottom: 3px solid var(--primary);
 }
 
 .nav-tab:hover {
@@ -77,10 +117,10 @@ body {
 }
 
 .form-section h2 {
-    color: #333;
+    color: var(--text-main);
     margin-bottom: 20px;
     font-size: 1.5rem;
-    border-bottom: 2px solid #ff6b6b;
+    border-bottom: 2px solid var(--primary);
     padding-bottom: 10px;
 }
 
@@ -106,7 +146,8 @@ input, select, textarea {
 
 input:focus, select:focus, textarea:focus {
     outline: none;
-    border-color: #ff6b6b;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.15);
 }
 
 textarea {
@@ -115,11 +156,11 @@ textarea {
 }
 
 .contact-entry {
-    background: #f8f9fa;
+    background: var(--muted-bg);
     padding: 20px;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     margin-bottom: 15px;
-    border-left: 4px solid #ff6b6b;
+    border-left: 4px solid var(--primary);
 }
 
 .contact-entry h3 {
@@ -148,18 +189,18 @@ textarea {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-    color: white;
+    background: var(--header-bg);
+    color: var(--text-on-primary);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.35);
 }
 
 .btn-secondary {
     background: #6c757d;
-    color: white;
+    color: var(--text-on-primary);
 }
 
 .btn-secondary:hover {
@@ -168,8 +209,8 @@ textarea {
 }
 
 .btn-danger {
-    background: #dc3545;
-    color: white;
+    background: var(--danger);
+    color: var(--text-on-primary);
 }
 
 .btn-danger:hover {
@@ -178,8 +219,8 @@ textarea {
 }
 
 .btn-success {
-    background: #28a745;
-    color: white;
+    background: var(--success);
+    color: var(--text-on-primary);
 }
 
 .btn-success:hover {
@@ -212,7 +253,7 @@ textarea {
 }
 
 .profile-header h2 {
-    color: #ff6b6b;
+    color: var(--primary);
     font-size: 2rem;
     margin-bottom: 10px;
 }
@@ -289,7 +330,7 @@ textarea {
 }
 
 .contact-card .phone a {
-    color: #ff6b6b;
+    color: var(--primary);
     text-decoration: none;
 }
 

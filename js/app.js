@@ -1955,55 +1955,56 @@ if (!document.getElementById('toast-styles')) {
     document.head.appendChild(style);
 }
 
-// ===== QR CODE FUNCTIONS =====
-
 /**
  * Generate QR code for profile sharing
- * Uses Google Chart API for QR generation
+ * Uses api.qrserver.com — a reliable, free, actively maintained API
  */
 function generateQRCode(profileId) {
     const container = document.getElementById('qrContainer');
     if (!container) return;
-    
+
     // Clear previous QR if any
-    container.innerHTML = '';
-    
+    container.innerHTML = '<p style="color:#666; font-size:0.9rem;">Generating QR code...</p>';
+
     try {
-        // Create QR link - relative URL for better portability
-        const qrLink = `view.html?code=${encodeURIComponent(profileId)}`;
-        const qrURL = `https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=${encodeURIComponent(qrLink)}`;
-        
+        // Build an absolute URL so the QR works when scanned from any device
+        const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
+        const qrLink = `${baseUrl}view.html?code=${encodeURIComponent(profileId)}`;
+        const qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(qrLink)}&ecc=H&color=333333&bgcolor=ffffff&margin=10`;
+
         // Create QR image element
         const qrImg = document.createElement('img');
         qrImg.src = qrURL;
-        qrImg.alt = 'Emergency Profile QR Code';
+        qrImg.alt = 'Emergency Profile QR Code — scan to view profile';
         qrImg.className = 'qr-code-img';
         qrImg.style.maxWidth = '100%';
         qrImg.style.height = 'auto';
-        
-        // Add error handling
+
         qrImg.onerror = function() {
-            container.innerHTML = '<p style="color: red;">Failed to generate QR code. Please try again.</p>';
-            console.error('Failed to load QR code image');
+            container.innerHTML = '<p style="color:#dc3545; font-weight:600;">⚠️ Could not load QR code. Check your internet connection and try again.</p>';
+            console.error('QR code image failed to load from qrserver.com');
         };
-        
+
         qrImg.onload = function() {
-            // Set download link
-            const downloadBtn = document.getElementById('downloadQR');
-            if (downloadBtn) {
-                downloadBtn.href = qrURL;
-            }
-            
-            // Set view profile link
+            container.innerHTML = '';
+            container.appendChild(qrImg);
+
+            // Set the direct link input to the absolute URL
             const viewLink = document.getElementById('viewProfileLink');
             if (viewLink) {
-                // viewProfileLink is an input field, set value instead of href
                 viewLink.value = qrLink;
             }
+
+            // Enable download button with canvas (avoids CORS issues)
+            const downloadBtn = document.getElementById('downloadQR');
+            if (downloadBtn) {
+                downloadBtn.setAttribute('data-qr-src', qrURL);
+            }
         };
-        
+
+        // Append img to trigger load
         container.appendChild(qrImg);
-        
+
         // Show QR section if hidden
         const qrSection = document.getElementById('qrSection');
         if (qrSection) {
@@ -2011,7 +2012,7 @@ function generateQRCode(profileId) {
         }
     } catch (error) {
         console.error('Error generating QR code:', error);
-        container.innerHTML = '<p style="color: red;">Error generating QR code. Please refresh and try again.</p>';
+        container.innerHTML = '<p style="color:#dc3545;">Error generating QR code. Please refresh and try again.</p>';
     }
 }
 

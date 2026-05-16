@@ -40,6 +40,8 @@
     }
     </script>
     
+    <!-- style.css: shared CSS variables & base layout -->
+    <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/main.css">
     <style>
         .view-container {
@@ -49,10 +51,10 @@
         }
 
         .profile-header {
-            background: linear-gradient(135deg, #2196F3, #1976D2);
-            color: white;
+            background: var(--header-bg);
+            color: var(--text-on-primary);
             padding: 30px;
-            border-radius: 12px;
+            border-radius: var(--radius-lg);
             margin-bottom: 20px;
             text-align: center;
         }
@@ -68,16 +70,16 @@
         }
 
         .profile-section {
-            background: white;
-            border-radius: 12px;
+            background: var(--card-bg);
+            border-radius: var(--radius-md);
             padding: 20px;
             margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-sm);
         }
 
         .profile-section h3 {
-            color: #2196F3;
-            border-bottom: 2px solid #E3F2FD;
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary-light);
             padding-bottom: 10px;
             margin-bottom: 15px;
         }
@@ -91,18 +93,18 @@
 
         .info-item {
             padding: 10px;
-            background: #F5F5F5;
-            border-radius: 8px;
+            background: var(--muted-bg);
+            border-radius: var(--radius-sm);
         }
 
         .info-label {
             font-weight: 600;
-            color: #666;
+            color: var(--text-muted);
             font-size: 0.9rem;
         }
 
         .info-value {
-            color: #333;
+            color: var(--text-main);
             margin-top: 5px;
             font-size: 1.05rem;
         }
@@ -110,8 +112,8 @@
         .list-item {
             padding: 10px;
             margin-bottom: 8px;
-            background: #F5F5F5;
-            border-left: 4px solid #2196F3;
+            background: var(--muted-bg);
+            border-left: 4px solid var(--primary);
             border-radius: 4px;
         }
 
@@ -119,7 +121,7 @@
             padding: 10px;
             margin-bottom: 8px;
             background: #FFF3E0;
-            border-left: 4px solid #FF9800;
+            border-left: 4px solid var(--warning);
             color: #E65100;
             border-radius: 4px;
             font-weight: 600;
@@ -133,20 +135,20 @@
         }
 
         .contact-card {
-            background: #E3F2FD;
-            border: 2px solid #2196F3;
-            border-radius: 8px;
+            background: var(--primary-light);
+            border: 2px solid var(--primary);
+            border-radius: var(--radius-sm);
             padding: 15px;
         }
 
         .contact-card h4 {
-            color: #1976D2;
+            color: var(--primary-dark);
             margin: 0 0 10px 0;
         }
 
         .contact-card p {
             margin: 5px 0;
-            color: #333;
+            color: var(--text-main);
         }
 
         .action-buttons {
@@ -156,13 +158,13 @@
             justify-content: center;
             margin-top: 30px;
             padding-top: 20px;
-            border-top: 1px solid #ddd;
+            border-top: 1px solid var(--border-color);
         }
 
         .btn {
             padding: 12px 20px;
             border: none;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
@@ -172,18 +174,18 @@
         }
 
         .btn-primary {
-            background: #2196F3;
-            color: white;
+            background: var(--header-bg);
+            color: var(--text-on-primary);
         }
 
         .btn-primary:hover {
-            background: #1976D2;
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,107,107,0.35);
         }
 
         .btn-secondary {
             background: #757575;
-            color: white;
+            color: var(--text-on-primary);
         }
 
         .btn-secondary:hover {
@@ -192,8 +194,8 @@
         }
 
         .btn-success {
-            background: #4CAF50;
-            color: white;
+            background: var(--success);
+            color: var(--text-on-primary);
         }
 
         .btn-success:hover {
@@ -203,9 +205,9 @@
 
         .error-container {
             background: #FFEBEE;
-            border-left: 4px solid #F44336;
+            border-left: 4px solid var(--danger);
             padding: 20px;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             margin: 20px;
             color: #C62828;
         }
@@ -214,25 +216,7 @@
             text-align: center;
             padding: 40px;
             font-size: 1.2rem;
-            color: #2196F3;
-        }
-
-        .loading::after {
-            content: '';
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { content: '⠋'; }
-            10% { content: '⠙'; }
-            20% { content: '⠹'; }
-            30% { content: '⠸'; }
-            40% { content: '⠼'; }
-            50% { content: '⠴'; }
-            60% { content: '⠦'; }
-            70% { content: '⠧'; }
-            80% { content: '⠇'; }
-            90% { content: '⠏'; }
+            color: var(--primary);
         }
 
         @media (max-width: 768px) {
