@@ -1,26 +1,7 @@
 /* Premium main stylesheet */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
-:root {
-  --primary: hsl(210, 70%, 55%);
-  --primary-dark: hsl(210, 70%, 45%);
-  --bg-gradient: linear-gradient(135deg, hsl(210, 80%, 95%), hsl(210, 70%, 85%));
-  --text-color: #2b2b2b;
-  --radius: 12px;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: 'Inter', sans-serif;
-  background: var(--bg-gradient);
-  color: var(--text-color);
-  line-height: 1.6;
-}
+/* main.css is used for QR and other component enhancements. Core variables and layout are in style.css. */
 
 header {
   padding: 3rem 1rem;

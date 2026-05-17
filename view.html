@@ -40,6 +40,7 @@
     }
     </script>
     
+    <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/main.css">
     <style>
         .view-container {
@@ -49,7 +50,7 @@
         }
 
         .profile-header {
-            background: linear-gradient(135deg, #2196F3, #1976D2);
+            background: var(--header-bg);
             color: white;
             padding: 30px;
             border-radius: 12px;
@@ -76,8 +77,8 @@
         }
 
         .profile-section h3 {
-            color: #2196F3;
-            border-bottom: 2px solid #E3F2FD;
+            color: var(--primary);
+            border-bottom: 2px solid var(--border-color);
             padding-bottom: 10px;
             margin-bottom: 15px;
         }
@@ -111,7 +112,7 @@
             padding: 10px;
             margin-bottom: 8px;
             background: #F5F5F5;
-            border-left: 4px solid #2196F3;
+            border-left: 4px solid var(--primary);
             border-radius: 4px;
         }
 
@@ -133,14 +134,14 @@
         }
 
         .contact-card {
-            background: #E3F2FD;
-            border: 2px solid #2196F3;
+            background: white;
+            border: 2px solid var(--primary);
             border-radius: 8px;
             padding: 15px;
         }
 
         .contact-card h4 {
-            color: #1976D2;
+            color: var(--primary-dark);
             margin: 0 0 10px 0;
         }
 
@@ -172,12 +173,12 @@
         }
 
         .btn-primary {
-            background: #2196F3;
+            background: var(--primary);
             color: white;
         }
 
         .btn-primary:hover {
-            background: #1976D2;
+            background: var(--primary-dark);
             transform: translateY(-2px);
         }
 
@@ -214,7 +215,7 @@
             text-align: center;
             padding: 40px;
             font-size: 1.2rem;
-            color: #2196F3;
+            color: var(--primary);
         }
 
         .loading::after {

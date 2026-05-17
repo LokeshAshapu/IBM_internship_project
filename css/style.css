@@ -1,3 +1,18 @@
+/* =============================================
+   SHARED DESIGN TOKENS
+   ============================================= */
+:root {
+    --primary:        #ff6b6b;
+    --primary-dark:   #ee5a24;
+    --primary-hover:  #ff5252;
+    --body-bg:        linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --header-bg:      linear-gradient(135deg, #ff6b6b, #ee5a24);
+    --text-main:      #333;
+    --text-muted:     #666;
+    --border-color:   #e9ecef;
+    --radius:         12px;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -7,8 +22,8 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
-    color: #333;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: var(--text-main);
+    background: var(--body-bg);
     min-height: 100vh;
     padding: 20px;
 }
@@ -23,7 +38,7 @@ body {
 }
 
 .header {
-    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    background: var(--header-bg);
     color: white;
     padding: 30px;
     text-align: center;
@@ -61,7 +76,7 @@ body {
 .nav-tab.active {
     background: white;
     color: #333;
-    border-bottom: 3px solid #ff6b6b;
+    border-bottom: 3px solid var(--primary);
 }
 
 .nav-tab:hover {
@@ -80,7 +95,7 @@ body {
     color: #333;
     margin-bottom: 20px;
     font-size: 1.5rem;
-    border-bottom: 2px solid #ff6b6b;
+    border-bottom: 2px solid var(--primary);
     padding-bottom: 10px;
 }
 
@@ -106,7 +121,7 @@ input, select, textarea {
 
 input:focus, select:focus, textarea:focus {
     outline: none;
-    border-color: #ff6b6b;
+    border-color: var(--primary);
 }
 
 textarea {
@@ -119,7 +134,7 @@ textarea {
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 15px;
-    border-left: 4px solid #ff6b6b;
+    border-left: 4px solid var(--primary);
 }
 
 .contact-entry h3 {
@@ -148,7 +163,7 @@ textarea {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    background: var(--header-bg);
     color: white;
 }
 
@@ -212,7 +227,7 @@ textarea {
 }
 
 .profile-header h2 {
-    color: #ff6b6b;
+    color: var(--primary);
     font-size: 2rem;
     margin-bottom: 10px;
 }
@@ -289,7 +304,7 @@ textarea {
 }
 
 .contact-card .phone a {
-    color: #ff6b6b;
+    color: var(--primary);
     text-decoration: none;
 }
 
