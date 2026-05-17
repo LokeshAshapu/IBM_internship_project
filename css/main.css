@@ -12,7 +12,7 @@ h1 {
   font-size: 2.8rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  color: var(--primary);
+  color: #ffffff;
 }
 
 p.lead {
@@ -50,7 +50,7 @@ section.features {
   background: #fff;
   border-radius: var(--radius);
   padding: 1.5rem;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
   transition: transform 0.2s ease;
 }
 
@@ -192,29 +192,34 @@ footer {
 }
 
 @media (max-width: 600px) {
-  h1 { font-size: 2.2rem; }
-  .cta-button { width: 100%; }
-  
+  h1 {
+    font-size: 2.2rem;
+  }
+
+  .cta-button {
+    width: 100%;
+  }
+
   .qr-container {
     min-height: 250px;
   }
-  
+
   .qr-code-img {
     max-width: 250px;
   }
-  
+
   .qr-actions {
     flex-direction: column;
   }
-  
+
   .qr-btn {
     width: 100%;
   }
-  
+
   .qr-section {
     padding: 1.5rem;
   }
-  
+
   .success-message {
     padding: 1.5rem;
   }
@@ -251,7 +256,8 @@ footer {
   margin-bottom: 0.5rem;
 }
 
-.copy-btn, .copy-link-btn {
+.copy-btn,
+.copy-link-btn {
   background: #4CAF50;
   color: white;
   border: none;
@@ -264,10 +270,11 @@ footer {
   display: inline-block;
 }
 
-.copy-btn:hover, .copy-link-btn:hover {
+.copy-btn:hover,
+.copy-link-btn:hover {
   background: #45a049;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .security-note {
@@ -363,7 +370,7 @@ footer {
   background: #E3F2FD;
   color: var(--primary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .qr-download {
@@ -439,28 +446,28 @@ footer {
   .qr-main-actions {
     grid-template-columns: 1fr;
   }
-  
+
   .download-buttons {
     grid-template-columns: 1fr;
   }
-  
+
   .link-box {
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .copy-link-btn {
     width: 100%;
   }
-  
+
   .quick-access-section {
     padding: 1rem;
   }
-  
+
   .download-section {
     padding: 1rem;
   }
-  
+
   .direct-link-section {
     padding: 1rem;
   }
