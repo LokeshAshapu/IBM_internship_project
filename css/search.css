@@ -25,7 +25,7 @@
 .search-box h2 {
     text-align: center;
     margin-bottom: 10px;
-    color: var(--primary);
+    color: #ff6b6b;
     font-size: 24px;
 }
 
@@ -49,7 +49,7 @@
 }
 
 .search-input-group input:focus {
-    border-color: var(--primary);
+    border-color: #ff6b6b;
     box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.2);
     background: #fff;
     outline: none;
@@ -85,10 +85,10 @@
 /* Search Button */
 .search-btn {
     padding: 14px;
-    background: var(--header-bg);
-    color: var(--text-on-primary);
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    color: white;
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: 10px;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
@@ -148,8 +148,8 @@
 }
 
 .btn-delete {
-    background: var(--danger);
-    color: var(--text-on-primary);
+    background: #b23b3b;
+    color: white;
 }
 
 .btn-delete:hover {
@@ -159,7 +159,7 @@
 
 .btn-print {
     background: #6c757d;
-    color: var(--text-on-primary);
+    color: white;
 }
 
 .btn-print:hover {
