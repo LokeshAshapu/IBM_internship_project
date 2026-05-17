@@ -189,6 +189,11 @@ const ENHANCED_AI_RESPONSES = {
 
 // GitHub API Functions
 async function fetchProfilesFromGitHub() {
+    // Skip GitHub fetch if token is not configured
+    if (GITHUB_CONFIG.token === 'YOUR_GITHUB_TOKEN_HERE' || !GITHUB_CONFIG.token) {
+        return loadFromLocalStorage();
+    }
+
     try {
         const response = await fetch(PROFILES_FILE_URL, {
             headers: {
@@ -218,6 +223,12 @@ async function fetchProfilesFromGitHub() {
 }
 
 async function saveProfilesToGitHub(profiles) {
+    // Skip GitHub save if token is not configured
+    if (GITHUB_CONFIG.token === 'YOUR_GITHUB_TOKEN_HERE' || !GITHUB_CONFIG.token) {
+        saveToLocalStorage(profiles);
+        return false;
+    }
+
     try {
         const content = JSON.stringify(profiles, null, 2);
         const encodedContent = btoa(content);
@@ -1969,9 +1980,12 @@ function generateQRCode(profileId) {
     container.innerHTML = '';
     
     try {
-        // Create QR link - relative URL for better portability
-        const qrLink = `view.html?code=${encodeURIComponent(profileId)}`;
-        const qrURL = `https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=${encodeURIComponent(qrLink)}`;
+        // Create QR link - use absolute URL so it works when scanned from any device
+        const currentPath = window.location.pathname.replace('index.html', '');
+        const qrLink = `${window.location.origin}${currentPath}view.html?code=${encodeURIComponent(profileId)}`;
+        
+        // Use QRServer API which is actively maintained and reliable
+        const qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrLink)}`;
         
         // Create QR image element
         const qrImg = document.createElement('img');
