@@ -2,7 +2,7 @@
 const GITHUB_CONFIG = {
     owner: 'LokeshAshapu', // Replace with your GitHub username
     repo: 'IBM_internship_project', // Replace with your repository name
-    token: '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', // Replace with your GitHub personal access token
+    token: 'YOUR_GITHUB_TOKEN_HERE', // Replace with your GitHub personal access token
     filePath: 'profiles.json'
 };
 
