@@ -1278,18 +1278,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (shareQRBtn) {
         shareQRBtn.addEventListener('click', async () => {
             const viewLink = document.getElementById('viewProfileLink');
-            if (viewLink && viewLink.href) {
+            if (viewLink && viewLink.value) {
                 try {
                     if (navigator.share) {
                         // Use Web Share API if available
                         await navigator.share({
                             title: 'Emergency Medical Profile',
                             text: 'Scan or click to view my emergency medical profile',
-                            url: viewLink.href
+                            url: viewLink.value
                         });
                     } else {
                         // Fallback: copy to clipboard
-                        await navigator.clipboard.writeText(viewLink.href);
+                        await navigator.clipboard.writeText(viewLink.value);
                         alert('Profile link copied to clipboard!');
                     }
                 } catch (error) {
