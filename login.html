@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Emergency Medical Profile</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .auth-container { max-width: 400px; width: 90%; background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        .auth-header { text-align: center; margin-bottom: 2rem; }
+        .auth-header h1 { color: #2c3e50; font-size: 1.8rem; margin-bottom: 0.5rem; }
+        .auth-header p { color: #95a5a6; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; color: #2c3e50; font-weight: 600; margin-bottom: 0.5rem; }
+        .form-group input { width: 100%; padding: 0.8rem; border: 1px solid #ecf0f1; border-radius: 6px; font-size: 1rem; }
+        .form-group input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        .form-group input::placeholder { color: #bdc3c7; }
+        .form-actions { display: grid; gap: 0.75rem; }
+        .btn { padding: 0.9rem; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); }
+        .btn-secondary { background: #ecf0f1; color: #2c3e50; border: 2px solid #95a5a6; }
+        .btn-secondary:hover { background: #d5dbdb; }
+        .divider { text-align: center; margin: 1.5rem 0; color: #95a5a6; position: relative; }
+        .divider::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #ecf0f1; }
+        .divider span { background: white; padding: 0 1rem; position: relative; }
+        .auth-links { text-align: center; margin-top: 1.5rem; }
+        .auth-links a { color: #667eea; text-decoration: none; font-weight: 600; }
+        .auth-links a:hover { text-decoration: underline; }
+        .error-message { background: #fff5f5; border-left: 4px solid #e74c3c; color: #c0392b; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; display: none; }
+        .success-message { background: #e8f8f5; border-left: 4px solid #27ae60; color: #16a085; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; display: none; }
+        .loading { opacity: 0.6; pointer-events: none; }
+        .demo-info { background: #fff3cd; border: 1px solid #ffc107; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.85rem; color: #856404; }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>🚑 EMP Login</h1>
+            <p>Sign in to access your profiles</p>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+
+        <div class="demo-info">
+            💡 <strong>Demo:</strong> Use test@example.com / password123 or create a new account
+        </div>
+
+        <!-- Email/Password Login -->
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="your@email.com" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="••••••••" required>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Sign In</button>
+            </div>
+        </form>
+
+        <div class="divider"><span>OR</span></div>
+
+        <!-- GitHub Login -->
+        <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="loginWithGitHub()">
+                🐙 Sign in with GitHub
+            </button>
+        </div>
+
+        <!-- Registration Link -->
+        <div class="auth-links">
+            Don't have an account? <a href="register.html">Create one now</a>
+        </div>
+
+        <!-- Forgot Password -->
+        <div class="auth-links" style="margin-top: 1rem; font-size: 0.9rem;">
+            <a href="#" onclick="alert('Demo: Password reset feature coming soon'); return false;">Forgot password?</a>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/subscription.js"></script>
+    <script>
+        // Create demo user on first load
+        function createDemoUser() {
+            const users = JSON.parse(localStorage.getItem('registeredUsers') || '{}');
+            if (Object.keys(users).length === 0) {
+                const result = authManager.registerWithEmail('test@example.com', 'password123', 'Demo User');
+                console.log('Demo user created:', result);
+            }
+        }
+
+        // Handle login form submission
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorEl = document.getElementById('errorMessage');
+            const successEl = document.getElementById('successMessage');
+
+            // Clear messages
+            errorEl.style.display = 'none';
+            successEl.style.display = 'none';
+
+            // Show loading state
+            const btn = this.querySelector('button');
+            const originalText = btn.textContent;
+            btn.textContent = '⏳ Signing in...';
+            btn.disabled = true;
+
+            // Simulate network delay
+            setTimeout(() => {
+                const result = authManager.loginWithEmail(email, password);
+
+                if (result.success) {
+                    // Link subscription to user if exists
+                    if (result.user) {
+                        console.log('✅ Login successful:', result.user.email);
+                        successEl.textContent = result.message;
+                        successEl.style.display = 'block';
+                        
+                        setTimeout(() => {
+                            const redirect = new URLSearchParams(window.location.search).get('redirect');
+                            window.location.href = redirect || 'dashboard.html';
+                        }, 1500);
+                    }
+                } else {
+                    errorEl.textContent = '❌ ' + result.error;
+                    errorEl.style.display = 'block';
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            }, 800);
+        });
+
+        // GitHub login
+        function loginWithGitHub() {
+            // For demo, simulate GitHub user
+            const demoGitHubUser = {
+                id: Math.floor(Math.random() * 1000000),
+                login: 'github_user_' + Math.random().toString(36).substr(2, 9),
+                name: 'GitHub User',
+                email: 'user@github.com',
+                avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4'
+            };
+
+            const result = authManager.loginWithGitHub(demoGitHubUser);
+            
+            if (result.success) {
+                document.getElementById('successMessage').textContent = result.message;
+                document.getElementById('successMessage').style.display = 'block';
+                
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+            }
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            createDemoUser();
+        });
+    </script>
+</body>
+</html>

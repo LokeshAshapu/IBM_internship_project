@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Emergency Medical Profile</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+        .auth-container { max-width: 450px; width: 100%; background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        .auth-header { text-align: center; margin-bottom: 2rem; }
+        .auth-header h1 { color: #2c3e50; font-size: 1.8rem; margin-bottom: 0.5rem; }
+        .auth-header p { color: #95a5a6; font-size: 0.95rem; }
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; color: #2c3e50; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .form-group input { width: 100%; padding: 0.8rem; border: 1px solid #ecf0f1; border-radius: 6px; font-size: 1rem; }
+        .form-group input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        .form-group small { display: block; color: #95a5a6; margin-top: 0.25rem; font-size: 0.85rem; }
+        .password-requirements { background: #f8f9fa; padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem; font-size: 0.85rem; }
+        .requirement { color: #95a5a6; margin: 0.5rem 0; display: flex; align-items: center; }
+        .requirement.met { color: #27ae60; }
+        .requirement::before { content: '○'; margin-right: 0.5rem; font-weight: bold; }
+        .requirement.met::before { content: '✓'; }
+        .form-actions { display: grid; gap: 0.75rem; margin-bottom: 1rem; }
+        .btn { padding: 0.9rem; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+        .auth-links { text-align: center; }
+        .auth-links a { color: #667eea; text-decoration: none; font-weight: 600; }
+        .auth-links a:hover { text-decoration: underline; }
+        .error-message, .success-message { padding: 1rem; border-radius: 4px; margin-bottom: 1rem; display: none; }
+        .error-message { background: #fff5f5; border-left: 4px solid #e74c3c; color: #c0392b; }
+        .success-message { background: #e8f8f5; border-left: 4px solid #27ae60; color: #16a085; }
+        .checkbox-group { display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 1.5rem; }
+        .checkbox-group input { margin-top: 0.4rem; }
+        .checkbox-group label { font-weight: 400; color: #666; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>🚑 Create Account</h1>
+            <p>Join Emergency Medical Profile for free</p>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+
+        <!-- Registration Form -->
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" placeholder="John Doe" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="your@email.com" required>
+                <small>We'll never share your email</small>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="••••••••" required>
+            </div>
+
+            <!-- Password Requirements -->
+            <div class="password-requirements">
+                <strong>Password Requirements:</strong>
+                <div class="requirement" id="req-length">At least 8 characters</div>
+                <div class="requirement" id="req-upper">One uppercase letter</div>
+                <div class="requirement" id="req-lower">One lowercase letter</div>
+                <div class="requirement" id="req-number">One number</div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="••••••••" required>
+            </div>
+
+            <!-- Terms checkbox -->
+            <div class="checkbox-group">
+                <input type="checkbox" id="terms" name="terms" required>
+                <label for="terms">I agree to the Terms of Service and Privacy Policy</label>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="submitBtn">Create Account</button>
+            </div>
+        </form>
+
+        <!-- Login Link -->
+        <div class="auth-links">
+            Already have an account? <a href="login.html">Sign in here</a>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+        const passwordInput = document.getElementById('password');
+        const form = document.getElementById('registerForm');
+
+        // Real-time password validation
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            
+            updateRequirement('req-length', password.length >= 8);
+            updateRequirement('req-upper', /[A-Z]/.test(password));
+            updateRequirement('req-lower', /[a-z]/.test(password));
+            updateRequirement('req-number', /[0-9]/.test(password));
+        });
+
+        function updateRequirement(id, met) {
+            const el = document.getElementById(id);
+            if (met) {
+                el.classList.add('met');
+            } else {
+                el.classList.remove('met');
+            }
+        }
+
+        function isPasswordStrong(password) {
+            return password.length >= 8 &&
+                   /[A-Z]/.test(password) &&
+                   /[a-z]/.test(password) &&
+                   /[0-9]/.test(password);
+        }
+
+        // Handle registration form submission
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorEl = document.getElementById('errorMessage');
+            const successEl = document.getElementById('successMessage');
+            const submitBtn = document.getElementById('submitBtn');
+
+            // Clear messages
+            errorEl.style.display = 'none';
+            successEl.style.display = 'none';
+
+            // Validation
+            if (!name) {
+                showError('Please enter your full name');
+                return;
+            }
+
+            if (!isPasswordStrong(password)) {
+                showError('Password does not meet requirements');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showError('Passwords do not match');
+                return;
+            }
+
+            if (!document.getElementById('terms').checked) {
+                showError('You must agree to the terms and conditions');
+                return;
+            }
+
+            // Show loading state
+            submitBtn.textContent = '⏳ Creating account...';
+            submitBtn.disabled = true;
+
+            // Simulate network delay
+            setTimeout(() => {
+                const result = authManager.registerWithEmail(email, password, name);
+
+                if (result.success) {
+                    successEl.textContent = '✅ ' + result.message + ' Redirecting...';
+                    successEl.style.display = 'block';
+                    
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
+                } else {
+                    showError(result.error);
+                    submitBtn.textContent = 'Create Account';
+                    submitBtn.disabled = false;
+                }
+            }, 800);
+
+            function showError(message) {
+                errorEl.textContent = '❌ ' + message;
+                errorEl.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

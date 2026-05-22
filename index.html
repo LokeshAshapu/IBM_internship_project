@@ -87,17 +87,37 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/consent_banner.css">
+    <script src="js/subscription.js"></script>
+    <script src="js/payments.js"></script>
+    <script src="js/auth.js"></script>
+    <style>
+        .user-nav { display: flex; gap: 1rem; align-items: center; }
+        .user-badge { padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600; }
+        .user-badge.premium { background: #d4edda; color: #155724; }
+        .user-badge.free { background: #ecf0f1; color: #34495e; }
+        .nav-user { padding: 0.5rem 1rem; background: #667eea; color: white; border-radius: 4px; cursor: pointer; font-weight: 600; text-decoration: none; }
+        .nav-user:hover { background: #5568d3; }
+    </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🚑 Emergency Medical Profile</h1>
-            <p class="lead">Quick access to critical medical information when it matters most</p>
+        <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1>🚑 Emergency Medical Profile</h1>
+                <p class="lead">Quick access to critical medical information when it matters most</p>
+            </div>
+            <div class="user-nav" id="userNav" style="display: none;">
+                <span class="user-badge" id="userBadge"></span>
+                <a href="dashboard.html" class="nav-user">📊 Dashboard</a>
+                <a href="#" class="nav-user" onclick="authManager.logout(); return false;">🚪 Logout</a>
+            </div>
         </div>
         
         <div class="nav-tabs">
             <a href="index.html" class="nav-tab active">Create Profile</a>
             <a href="search.html" class="nav-tab">Search Profile</a>
+            <a href="pricing.html" class="nav-tab">💰 Pricing</a>
         </div>
         <div class="content">
             <form id="medicalForm">
@@ -228,5 +248,26 @@
         </div>
     </div>
     <script src="js/app.js"></script>
+    <script>
+        // Initialize user nav
+        function initUserNav() {
+            const user = authManager.getCurrentUser();
+            const userNav = document.getElementById('userNav');
+            
+            if (user) {
+                userNav.style.display = 'flex';
+                const badge = document.getElementById('userBadge');
+                const tier = user.subscription.tier;
+                badge.textContent = tier === 'premium' ? '💎 Premium' : '🆓 Free';
+                badge.className = tier === 'premium' ? 'user-badge premium' : 'user-badge free';
+            } else {
+                userNav.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('load', initUserNav);
+        document.addEventListener('auth:login', initUserNav);
+        document.addEventListener('auth:logout', initUserNav);
+    </script>
 </body>
 </html>

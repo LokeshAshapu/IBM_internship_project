@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing History - Emergency Medical Profile</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        body { background: #f5f7fa; }
+        .billing-container { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem; }
+        .back-button { margin-bottom: 2rem; }
+        .back-button a { color: #667eea; text-decoration: none; font-weight: 600; }
+        .header-section { background: white; padding: 2rem; border-radius: 8px; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .header-section h1 { margin: 0; color: #2c3e50; }
+        .filter-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .filter-btn { padding: 0.6rem 1rem; border: 2px solid #ecf0f1; background: white; border-radius: 6px; cursor: pointer; font-weight: 600; color: #95a5a6; transition: all 0.3s ease; }
+        .filter-btn.active { border-color: #667eea; color: #667eea; background: #f0f4ff; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 2rem; }
+        .card h2 { margin-top: 0; color: #2c3e50; }
+        .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+        .summary-card { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 1.5rem; border-radius: 8px; text-align: center; }
+        .summary-card.light { background: #f8f9fa; color: #2c3e50; }
+        .summary-label { font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem; }
+        .summary-value { font-size: 1.8rem; font-weight: 700; }
+        .transactions-table { width: 100%; border-collapse: collapse; }
+        .transactions-table thead { background: #f8f9fa; }
+        .transactions-table th { padding: 1rem; text-align: left; color: #2c3e50; font-weight: 700; border-bottom: 2px solid #ecf0f1; }
+        .transactions-table td { padding: 1rem; border-bottom: 1px solid #ecf0f1; }
+        .transactions-table tbody tr:hover { background: #f8f9fa; }
+        .transaction-date { color: #95a5a6; font-size: 0.9rem; }
+        .transaction-description { font-weight: 600; color: #2c3e50; }
+        .transaction-type { display: inline-block; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; }
+        .type-charge { background: #fee; color: #c33; }
+        .type-credit { background: #efe; color: #3c3; }
+        .type-refund { background: #eef; color: #33c; }
+        .amount { font-weight: 700; color: #2c3e50; }
+        .amount.positive { color: #e74c3c; }
+        .amount.negative { color: #27ae60; }
+        .status-badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-failed { background: #f8d7da; color: #721c24; }
+        .action-buttons { display: flex; gap: 0.5rem; }
+        .btn-small { padding: 0.4rem 0.8rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
+        .btn-view { background: #3498db; color: white; }
+        .btn-download { background: #2ecc71; color: white; }
+        .btn-download:hover { background: #27ae60; }
+        .btn-view:hover { background: #2980b9; }
+        .empty-state { text-align: center; padding: 3rem 2rem; color: #95a5a6; }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .pagination { display: flex; gap: 0.5rem; justify-content: center; margin-top: 2rem; }
+        .pagination button { padding: 0.5rem 0.8rem; border: 1px solid #bdc3c7; border-radius: 4px; background: white; cursor: pointer; color: #2c3e50; font-weight: 600; }
+        .pagination button.active { background: #667eea; color: white; border-color: #667eea; }
+        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .search-box { padding: 0.75rem 1rem; border: 1px solid #bdc3c7; border-radius: 6px; width: 250px; font-size: 0.9rem; }
+        .export-btn { padding: 0.6rem 1.2rem; background: #2ecc71; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .export-btn:hover { background: #27ae60; }
+        .header-controls { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+        @media (max-width: 768px) {
+            .header-section { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .summary-grid { grid-template-columns: 1fr; }
+            .transactions-table { font-size: 0.9rem; }
+            .transactions-table th, .transactions-table td { padding: 0.75rem; }
+            .header-controls { flex-direction: column; width: 100%; }
+            .search-box { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="billing-container">
+        <div class="back-button">
+            <a href="dashboard.html">← Back to Dashboard</a>
+        </div>
+
+        <div class="header-section">
+            <h1>💳 Billing History</h1>
+            <div class="header-controls">
+                <input type="text" class="search-box" id="searchBox" placeholder="Search transactions...">
+                <button class="export-btn" onclick="exportBilling()">📥 Export</button>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="card">
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <div class="summary-label">Total Spent</div>
+                    <div class="summary-value" id="totalSpent">$0.00</div>
+                </div>
+                <div class="summary-card light">
+                    <div class="summary-label">Total Refunded</div>
+                    <div class="summary-value" id="totalRefunded">$0.00</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Next Renewal</div>
+                    <div class="summary-value" id="nextRenewal">N/A</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Buttons -->
+        <div class="card">
+            <div style="margin-bottom: 1rem;">
+                <strong>Filter by Type:</strong>
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterTransactions('all')">All</button>
+                <button class="filter-btn" onclick="filterTransactions('charge')">Charges</button>
+                <button class="filter-btn" onclick="filterTransactions('refund')">Refunds</button>
+                <button class="filter-btn" onclick="filterTransactions('credit')">Credits</button>
+            </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="card">
+            <h2>Transactions</h2>
+            <div id="transactionsContainer"></div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/subscription.js"></script>
+    <script>
+        // Require authentication
+        authManager.requireAuth();
+
+        let allTransactions = [];
+        let currentFilter = 'all';
+
+        function loadBillingHistory() {
+            const user = authManager.getCurrentUser();
+            if (!user) return;
+
+            // Get billing history from subscription
+            const billingHistory = user.subscription.billingHistory || [];
+            
+            // Generate sample transactions if none exist
+            if (billingHistory.length === 0) {
+                if (user.subscription.tier === 'premium') {
+                    allTransactions = [
+                        {
+                            id: 'TXN-001',
+                            date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+                            description: 'Premium Subscription - Monthly',
+                            type: 'charge',
+                            amount: 4.99,
+                            status: 'completed'
+                        },
+                        {
+                            id: 'TXN-002',
+                            date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
+                            description: 'Premium Subscription - Monthly',
+                            type: 'charge',
+                            amount: 4.99,
+                            status: 'completed'
+                        }
+                    ];
+                } else {
+                    allTransactions = [];
+                }
+            } else {
+                allTransactions = billingHistory.map(tx => ({
+                    ...tx,
+                    date: new Date(tx.date)
+                }));
+            }
+
+            // Update summary
+            updateSummary(user);
+
+            // Display transactions
+            displayTransactions();
+        }
+
+        function updateSummary(user) {
+            const totalSpent = allTransactions
+                .filter(tx => tx.type === 'charge' && tx.status === 'completed')
+                .reduce((sum, tx) => sum + tx.amount, 0);
+
+            const totalRefunded = allTransactions
+                .filter(tx => tx.type === 'refund' && tx.status === 'completed')
+                .reduce((sum, tx) => sum + tx.amount, 0);
+
+            document.getElementById('totalSpent').textContent = `$${totalSpent.toFixed(2)}`;
+            document.getElementById('totalRefunded').textContent = `-$${totalRefunded.toFixed(2)}`;
+
+            // Get next renewal date
+            if (user.subscription.tier === 'premium' && user.subscription.expiryDate) {
+                const date = new Date(user.subscription.expiryDate);
+                document.getElementById('nextRenewal').textContent = date.toLocaleDateString();
+            } else {
+                document.getElementById('nextRenewal').textContent = 'No Active Plan';
+            }
+        }
+
+        function displayTransactions() {
+            const container = document.getElementById('transactionsContainer');
+
+            const filtered = currentFilter === 'all' 
+                ? allTransactions 
+                : allTransactions.filter(tx => tx.type === currentFilter);
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>No transactions found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const tableHTML = `
+                <table class="transactions-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filtered.map(tx => `
+                            <tr>
+                                <td>
+                                    <div class="transaction-date">${tx.date.toLocaleDateString()}</div>
+                                    <div style="color: #95a5a6; font-size: 0.8rem;">${tx.date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</div>
+                                </td>
+                                <td>
+                                    <div class="transaction-description">${tx.description}</div>
+                                </td>
+                                <td>
+                                    <span class="transaction-type type-${tx.type}">${tx.type.toUpperCase()}</span>
+                                </td>
+                                <td>
+                                    <span class="amount ${tx.type === 'charge' ? 'positive' : 'negative'}">
+                                        ${tx.type === 'charge' ? '+' : '-'}$${tx.amount.toFixed(2)}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-${tx.status}">${tx.status.toUpperCase()}</span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-small btn-view" onclick="viewReceipt('${tx.id}')">👁️</button>
+                                        <button class="btn-small btn-download" onclick="downloadReceipt('${tx.id}')">⬇️</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            container.innerHTML = tableHTML;
+        }
+
+        function filterTransactions(type) {
+            currentFilter = type;
+
+            // Update button states
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            displayTransactions();
+        }
+
+        function viewReceipt(transactionId) {
+            const tx = allTransactions.find(t => t.id === transactionId);
+            if (tx) {
+                alert(`Receipt Details:\n\nID: ${tx.id}\nDate: ${tx.date.toLocaleString()}\nDescription: ${tx.description}\nAmount: $${tx.amount.toFixed(2)}\nStatus: ${tx.status}`);
+            }
+        }
+
+        function downloadReceipt(transactionId) {
+            alert('📥 Receipt download coming soon. For now, please take a screenshot of the receipt details.');
+        }
+
+        function exportBilling() {
+            const csv = [
+                ['Date', 'Description', 'Type', 'Amount', 'Status'],
+                ...allTransactions.map(tx => [
+                    tx.date.toLocaleDateString(),
+                    tx.description,
+                    tx.type,
+                    `$${tx.amount.toFixed(2)}`,
+                    tx.status
+                ])
+            ].map(row => row.join(',')).join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `billing-history-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        // Initialize
+        window.addEventListener('load', loadBillingHistory);
+    </script>
+</body>
+</html>

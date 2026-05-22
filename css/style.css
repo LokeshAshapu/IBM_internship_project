@@ -2,7 +2,7 @@
    SHARED DESIGN TOKENS
    ============================================= */
 :root {
-    --primary:        #ff6b6b;
+    --primary:        #ee5a24;
     --primary-dark:   #ee5a24;
     --primary-hover:  #ff5252;
     --body-bg:        linear-gradient(135deg, #667eea 0%, #764ba2 100%);

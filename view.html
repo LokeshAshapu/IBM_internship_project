@@ -43,8 +43,11 @@
     }
     </script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/consent_banner.css">
     <style>
         .view-container {
             max-width: 900px;
@@ -515,6 +518,9 @@
                     return;
                 }
 
+                if (typeof window.jspdf !== 'undefined') {
+                    window.jsPDF = window.jspdf.jsPDF;
+                }
                 const doc = new jsPDF();
                 const pageWidth = doc.internal.pageSize.getWidth();
                 const pageHeight = doc.internal.pageSize.getHeight();

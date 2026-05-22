@@ -797,6 +797,34 @@ async function downloadAllProfilesAsImage() {
     }
 }
 
+async function downloadAllProfilesAsJSON() {
+    try {
+        const profiles = await loadAllProfiles();
+        const profileArray = Object.values(profiles);
+        
+        if (profileArray.length === 0) {
+            alert('No profiles found to download.');
+            return;
+        }
+        
+        const jsonContent = JSON.stringify(profileArray, null, 2);
+        const blob = new Blob([jsonContent], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `All_Emergency_Profiles_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        console.log('All profiles downloaded as JSON successfully');
+    } catch (error) {
+        console.error('Error downloading all profiles as JSON:', error);
+        alert('Error downloading profiles as JSON. Please try again.');
+    }
+}
+
 // Enhanced Profile Management UI Functions
 function showUpdateProfileModal(profile) {
     // Create modal overlay
@@ -870,6 +898,16 @@ function showUpdateProfileModal(profile) {
                 <label>Current Medications (one per line)</label>
                 <textarea id="updateMedications" rows="4">${profile.medical.medications.join('\n')}</textarea>
             </div>
+
+            <div class="form-group">
+                <label style="font-weight: bold; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; margin-bottom: 10px; display: block;">🚨 Emergency Contacts</label>
+                <div id="updateContactsList">
+                    <!-- Contacts will be dynamically loaded here -->
+                </div>
+                <button type="button" class="btn btn-success" id="addUpdateContactBtn" style="margin-top: 10px; width: 100%;">
+                    ➕ Add Emergency Contact
+                </button>
+            </div>
             
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">💾 Save Changes</button>
@@ -881,6 +919,69 @@ function showUpdateProfileModal(profile) {
     modalOverlay.appendChild(modalContent);
     document.body.appendChild(modalOverlay);
 
+    const updateContactsList = modalContent.querySelector('#updateContactsList');
+    const addUpdateContactBtn = modalContent.querySelector('#addUpdateContactBtn');
+
+    function addContactRow(contact = { name: '', phone: '', relationship: '' }, index = null) {
+        const idx = index !== null ? index : updateContactsList.querySelectorAll('.contact-entry-row').length;
+        const row = document.createElement('div');
+        row.className = 'contact-entry-row';
+        row.style.cssText = `
+            border: 1px solid #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+        `;
+        row.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h4 style="margin: 0; font-size: 0.95rem; color: #555;">Contact <span class="contact-index">${idx + 1}</span></h4>
+                <button type="button" class="btn btn-danger remove-update-contact-btn" style="padding: 2px 8px; font-size: 0.8rem; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">🗑️ Remove</button>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label style="font-size: 0.8rem; margin-bottom: 3px; display: block;">Name</label>
+                    <input type="text" class="update-contact-name" value="${contact.name}" style="width: 100%; padding: 6px; font-size: 0.9rem;" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label style="font-size: 0.8rem; margin-bottom: 3px; display: block;">Phone</label>
+                    <input type="tel" class="update-contact-phone" value="${contact.phone}" style="width: 100%; padding: 6px; font-size: 0.9rem;" required>
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label style="font-size: 0.8rem; margin-bottom: 3px; display: block;">Relationship</label>
+                <input type="text" class="update-contact-relationship" value="${contact.relationship}" style="width: 100%; padding: 6px; font-size: 0.9rem;" required>
+            </div>
+        `;
+        updateContactsList.appendChild(row);
+
+        row.querySelector('.remove-update-contact-btn').addEventListener('click', () => {
+            row.remove();
+            updateContactIndexes();
+        });
+    }
+
+    function updateContactIndexes() {
+        const rows = updateContactsList.querySelectorAll('.contact-entry-row');
+        rows.forEach((row, i) => {
+            row.querySelector('.contact-index').textContent = i + 1;
+        });
+    }
+
+    // Render initial contacts
+    if (profile.emergencyContacts && profile.emergencyContacts.length > 0) {
+        profile.emergencyContacts.forEach((contact, index) => {
+            addContactRow(contact, index);
+        });
+    } else {
+        addContactRow();
+    }
+
+    // Add contact button listener
+    addUpdateContactBtn.addEventListener('click', () => {
+        addContactRow();
+    });
+
     // Handle form submission
     document.getElementById('updateProfileForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -891,7 +992,16 @@ function showUpdateProfileModal(profile) {
         submitBtn.disabled = true;
 
         try {
-                        const updatedData = {
+            const contactRows = updateContactsList.querySelectorAll('.contact-entry-row');
+            const updatedContacts = Array.from(contactRows).map(row => {
+                return {
+                    name: row.querySelector('.update-contact-name').value.trim(),
+                    phone: row.querySelector('.update-contact-phone').value.trim(),
+                    relationship: row.querySelector('.update-contact-relationship').value.trim()
+                };
+            }).filter(c => c.name || c.phone || c.relationship);
+
+            const updatedData = {
                 personal: {
                     fullName: document.getElementById('updateFullName').value,
                     dob: document.getElementById('updateDob').value,
@@ -902,7 +1012,7 @@ function showUpdateProfileModal(profile) {
                     allergies: document.getElementById('updateAllergies').value.split(',').map(item => item.trim()).filter(item => item),
                     medications: document.getElementById('updateMedications').value.split('\n').map(item => item.trim()).filter(item => item)
                 },
-                emergencyContacts: profile.emergencyContacts // Keep existing contacts for now
+                emergencyContacts: updatedContacts
             };
 
             const success = await updateProfile(profile._id, updatedData);
@@ -1248,6 +1358,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const uniqueId = await saveProfile(profileData);
 
+                // Link profile to current user if authenticated
+                if (typeof authManager !== 'undefined' && authManager.getCurrentUser()) {
+                    const user = authManager.getCurrentUser();
+                    if (!user.profiles) user.profiles = [];
+                    if (!user.profiles.includes(uniqueId)) {
+                        user.profiles.push(uniqueId);
+                        authManager.updateUserProfile({ profiles: user.profiles });
+                    }
+                }
+
                 document.getElementById('medicalForm').classList.add('hidden');
                 document.getElementById('uniqueCode').textContent = uniqueId;
                 document.getElementById('successMessage').classList.remove('hidden');
@@ -1342,12 +1462,32 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
+        if (searchByCode && searchByName) {
+            searchByCode.addEventListener('input', () => {
+                if (searchByCode.value.trim()) {
+                    searchByName.value = '';
+                }
+            });
+            searchByName.addEventListener('input', () => {
+                if (searchByName.value.trim()) {
+                    searchByCode.value = '';
+                }
+            });
+        }
+
         async function performSearch(searchTerm) {
             const searchResults = document.getElementById('searchResults');
             const errorMessage = document.getElementById('errorMessage');
             const profileData = document.getElementById('profileData');
+            const searchBtnText = document.getElementById('searchBtnText');
+            const searchBtnLoading = document.getElementById('searchBtnLoading');
 
-            searchBtn.textContent = 'Searching...';
+            if (searchBtnText && searchBtnLoading) {
+                searchBtnText.classList.add('hidden');
+                searchBtnLoading.classList.remove('hidden');
+            } else {
+                searchBtn.textContent = 'Searching...';
+            }
             searchBtn.disabled = true;
 
             try {
@@ -1359,10 +1499,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const downloadBtn = document.getElementById('downloadProfileBtn');
                     const updateBtn = document.getElementById('updateProfileBtn');
                     const deleteBtn = document.getElementById('deleteProfileBtn');
+                    const printBtn = document.getElementById('printProfileBtn');
 
                     if (downloadBtn) downloadBtn.style.display = 'inline-block';
                     if (updateBtn) updateBtn.style.display = 'inline-block';
                     if (deleteBtn) deleteBtn.style.display = 'inline-block';
+                    if (printBtn) printBtn.style.display = 'inline-block';
 
                     const age = calculateAge(profile.personal.dob);
 
@@ -1439,10 +1581,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const downloadBtn = document.getElementById('downloadProfileBtn');
                     const updateBtn = document.getElementById('updateProfileBtn');
                     const deleteBtn = document.getElementById('deleteProfileBtn');
+                    const printBtn = document.getElementById('printProfileBtn');
 
                     if (downloadBtn) downloadBtn.style.display = 'none';
                     if (updateBtn) updateBtn.style.display = 'none';
                     if (deleteBtn) deleteBtn.style.display = 'none';
+                    if (printBtn) printBtn.style.display = 'none';
 
                     searchResults.classList.add('hidden');
                     errorMessage.classList.remove('hidden');
@@ -1451,7 +1595,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Search error:', error);
                 alert('Error searching for profile. Please try again.');
             } finally {
-                searchBtn.textContent = 'Search';
+                if (searchBtnText && searchBtnLoading) {
+                    searchBtnText.classList.remove('hidden');
+                    searchBtnLoading.classList.add('hidden');
+                } else {
+                    searchBtn.textContent = 'Search';
+                }
                 searchBtn.disabled = false;
             }
         }
@@ -1563,6 +1712,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Bulk download buttons setup
+    const downloadAllJSONBtn = document.getElementById('downloadAllJSON');
+    if (downloadAllJSONBtn) {
+        downloadAllJSONBtn.addEventListener('click', async () => {
+            await downloadAllProfilesAsJSON();
+        });
+    }
+
     const downloadAllPDFBtn = document.getElementById('downloadAllPDF');
     if (downloadAllPDFBtn) {
         downloadAllPDFBtn.addEventListener('click', async () => {
@@ -1576,6 +1732,9 @@ document.addEventListener('DOMContentLoaded', () => {
             await downloadAllProfilesAsImage();
         });
     }
+
+    // Initialize Cookie Consent Banner
+    initConsentBanner();
 });
 
 // Additional utility functions
@@ -1626,6 +1785,30 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
+function initConsentBanner() {
+    if (localStorage.getItem('cookieConsent') === 'accepted') {
+        return;
+    }
+
+    const banner = document.createElement('div');
+    banner.className = 'consent-banner';
+    banner.innerHTML = `
+        <span class="consent-text">🍪 We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.</span>
+        <button id="acceptConsentBtn">Accept</button>
+    `;
+    
+    document.body.appendChild(banner);
+
+    const acceptBtn = banner.querySelector('#acceptConsentBtn');
+    acceptBtn.addEventListener('click', () => {
+        localStorage.setItem('cookieConsent', 'accepted');
+        banner.classList.add('dismissed');
+        setTimeout(() => {
+            banner.remove();
+        }, 500);
+    });
+}
+
 // Export functions for external use
 window.EmergencyProfileSystem = {
     saveProfile,
@@ -1637,9 +1820,11 @@ window.EmergencyProfileSystem = {
     downloadProfile,
     downloadAllProfilesAsPDF,
     downloadAllProfilesAsImage,
+    downloadAllProfilesAsJSON,
     getMedicineSuggestions,
     loadAllProfiles,
-    showNotification
+    showNotification,
+    initConsentBanner
 };
 
 // Error handling for GitHub API
@@ -2081,6 +2266,9 @@ async function downloadProfilePDF() {
             return;
         }
         
+        if (typeof window.jspdf !== 'undefined') {
+            window.jsPDF = window.jspdf.jsPDF;
+        }
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();

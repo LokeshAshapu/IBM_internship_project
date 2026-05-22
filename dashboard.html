@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Emergency Medical Profile</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        body { background: #f5f7fa; }
+        .dashboard-container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+        .header-bar { background: white; padding: 1rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .user-info { display: flex; align-items: center; gap: 1rem; }
+        .user-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; }
+        .user-details h2 { color: #2c3e50; margin-bottom: 0.25rem; }
+        .user-tier { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+        .user-tier.free { background: #ecf0f1; color: #34495e; }
+        .user-tier.premium { background: #d4edda; color: #155724; }
+        .header-actions { display: flex; gap: 1rem; }
+        .btn { padding: 0.6rem 1.2rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5568d3; }
+        .btn-secondary { background: white; color: #667eea; border: 2px solid #667eea; }
+        .btn-secondary:hover { background: #667eea; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-danger:hover { background: #c0392b; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
+        .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .card h3 { color: #2c3e50; margin-bottom: 1rem; font-size: 1.2rem; }
+        .stat-value { font-size: 2rem; font-weight: bold; color: #667eea; margin-bottom: 0.5rem; }
+        .stat-label { color: #95a5a6; font-size: 0.9rem; }
+        .upgrade-banner { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 2rem; border-radius: 8px; text-align: center; margin-bottom: 2rem; }
+        .upgrade-banner h2 { margin-bottom: 0.5rem; }
+        .upgrade-banner p { margin-bottom: 1rem; opacity: 0.9; }
+        .upgrade-btn { background: white; color: #667eea; padding: 0.8rem 2rem; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; }
+        .upgrade-btn:hover { transform: scale(1.05); }
+        .profiles-list { list-style: none; padding: 0; margin: 0; }
+        .profile-item { background: #f8f9fa; padding: 1rem; border-radius: 6px; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; }
+        .profile-item-info h4 { margin: 0 0 0.25rem 0; color: #2c3e50; }
+        .profile-item-info p { margin: 0; color: #95a5a6; font-size: 0.85rem; }
+        .profile-item-actions { display: flex; gap: 0.5rem; }
+        .profile-item-actions button { padding: 0.4rem 0.8rem; font-size: 0.8rem; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-view { background: #3498db; color: white; }
+        .btn-edit { background: #2ecc71; color: white; }
+        .btn-delete { background: #e74c3c; color: white; }
+        .empty-state { text-align: center; padding: 2rem; color: #95a5a6; }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .subscription-info { background: #e3f2fd; border: 1px solid #2196f3; border-left: 4px solid #2196f3; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; }
+        .subscription-info.premium { background: #e8f8f5; border-color: #27ae60; border-left-color: #27ae60; }
+        .settings-section { margin-bottom: 2rem; }
+        .settings-section h3 { color: #2c3e50; margin-bottom: 1rem; }
+        .setting-item { padding: 1rem; background: #f8f9fa; border-radius: 6px; margin-bottom: 0.75rem; }
+        .disabled-feature { opacity: 0.6; color: #95a5a6; }
+        @media (max-width: 768px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .header-bar { flex-direction: column; gap: 1rem; align-items: flex-start; }
+            .header-actions { flex-direction: column; width: 100%; }
+            .btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header with User Info -->
+        <div class="header-bar">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-details">
+                    <h2 id="userName">User Name</h2>
+                    <span class="user-tier" id="userTier">Free</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="account-settings.html"><button class="btn btn-secondary">⚙️ Settings</button></a>
+                <button class="btn btn-danger" onclick="logoutUser()">🚪 Logout</button>
+            </div>
+        </div>
+
+        <!-- Upgrade Banner (Free Users Only) -->
+        <div id="upgradeBanner" class="upgrade-banner" style="display: none;">
+            <h2>✨ Upgrade to Premium</h2>
+            <p>Unlock file uploads, family profiles, and SMS/Email alerts!</p>
+            <a href="pricing.html"><button class="upgrade-btn">Upgrade Now</button></a>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Subscription Card -->
+            <div class="card">
+                <h3>💳 Subscription</h3>
+                <div id="subscriptionCard"></div>
+            </div>
+
+            <!-- Stats Card -->
+            <div class="card">
+                <h3>📊 Account Stats</h3>
+                <div>
+                    <div>
+                        <div class="stat-value" id="profileCount">0</div>
+                        <div class="stat-label">Profiles Created</div>
+                    </div>
+                    <div style="margin-top: 1.5rem;">
+                        <div class="stat-value" id="accountAge">0</div>
+                        <div class="stat-label">Days Active</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions Card -->
+            <div class="card">
+                <h3>🚀 Quick Actions</h3>
+                <div style="display: grid; gap: 0.75rem;">
+                    <a href="index.html"><button class="btn btn-primary" style="width: 100%;">➕ Create Profile</button></a>
+                    <a href="search.html"><button class="btn btn-secondary" style="width: 100%;">🔍 Search Profile</button></a>
+                    <a href="pricing.html"><button class="btn btn-secondary" style="width: 100%;">💰 View Pricing</button></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Your Profiles Section -->
+        <div class="card">
+            <h3>👤 Your Emergency Profiles</h3>
+            <ul class="profiles-list" id="profilesList"></ul>
+            <div id="emptyProfiles" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">📋</div>
+                <p>No profiles yet. <a href="index.html" style="color: #667eea; font-weight: 600;">Create your first profile</a></p>
+            </div>
+        </div>
+
+        <!-- Subscription Features (Premium Only) -->
+        <div id="premiumFeatures" class="card" style="display: none;">
+            <h3>✨ Premium Features</h3>
+            <div class="settings-section">
+                <div class="setting-item">
+                    <strong>📁 File Uploads</strong>
+                    <p>Upload medical documents, prescriptions, and insurance cards (50MB max)</p>
+                </div>
+                <div class="setting-item">
+                    <strong>👨‍👩‍👧‍👦 Family Profiles</strong>
+                    <p>Manage up to 5 family member profiles from one dashboard</p>
+                </div>
+                <div class="setting-item">
+                    <strong>📱 SMS Alerts</strong>
+                    <p>Automatically notify emergency contacts when your QR code is scanned</p>
+                </div>
+                <div class="setting-item">
+                    <strong>📧 Email Alerts</strong>
+                    <p>Receive email notifications with scan details and time</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Free Features -->
+        <div id="freeFeatures" class="card" style="display: none;">
+            <h3>🆓 Free Plan Features</h3>
+            <div class="settings-section">
+                <div class="setting-item">
+                    <strong>✅ Basic Medical Profile</strong>
+                    <p>Create and manage your emergency medical information</p>
+                </div>
+                <div class="setting-item">
+                    <strong>✅ QR Code Generation</strong>
+                    <p>Generate and download your personal QR code for emergency access</p>
+                </div>
+                <div class="setting-item">
+                    <strong>✅ Profile Search</strong>
+                    <p>Find and view emergency profiles by code or name</p>
+                </div>
+                <div class="setting-item">
+                    <strong>✅ Multiple Download Formats</strong>
+                    <p>Download your profile as PDF, CSV, or QR image</p>
+                </div>
+                <div class="setting-item disabled-feature">
+                    <strong>❌ File Uploads</strong>
+                    <p><em>Upgrade to Premium to upload medical documents</em></p>
+                </div>
+                <div class="setting-item disabled-feature">
+                    <strong>❌ Family Profiles</strong>
+                    <p><em>Upgrade to Premium to manage family profiles</em></p>
+                </div>
+                <div class="setting-item disabled-feature">
+                    <strong>❌ SMS/Email Alerts</strong>
+                    <p><em>Upgrade to Premium to enable emergency alerts</em></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/subscription.js"></script>
+    <script>
+        // Require authentication
+        authManager.requireAuth();
+
+        // Load dashboard data
+        function loadDashboard() {
+            const user = authManager.getCurrentUser();
+            if (!user) return;
+
+            // Update user info
+            document.getElementById('userName').textContent = user.name || user.email;
+            document.getElementById('userAvatar').textContent = (user.name || user.email)[0].toUpperCase();
+            
+            const tier = user.subscription.tier;
+            const tierEl = document.getElementById('userTier');
+            tierEl.textContent = tier === 'premium' ? '💎 Premium' : '🆓 Free';
+            tierEl.className = tier === 'premium' ? 'user-tier premium' : 'user-tier free';
+
+            // Update subscription card
+            const subCard = document.getElementById('subscriptionCard');
+            if (tier === 'premium') {
+                const expiryDate = user.subscription.expiryDate ? new Date(user.subscription.expiryDate).toLocaleDateString() : 'N/A';
+                subCard.innerHTML = `
+                    <div class="subscription-info premium">
+                        <strong>💎 Premium Subscriber</strong><br>
+                        Status: <span style="color: #27ae60; font-weight: bold;">Active</span><br>
+                        Expires: ${expiryDate}<br><br>
+                        <button class="btn btn-secondary" onclick="alert('Manage subscription coming soon')">Manage Subscription</button>
+                    </div>
+                `;
+                document.getElementById('upgradeBanner').style.display = 'none';
+                document.getElementById('premiumFeatures').style.display = 'block';
+                document.getElementById('freeFeatures').style.display = 'none';
+            } else {
+                subCard.innerHTML = `
+                    <div class="subscription-info">
+                        <strong>🆓 Free Plan</strong><br>
+                        Max Profiles: 1<br>
+                        File Upload: Not available<br>
+                        Premium Features: Not included<br><br>
+                        <a href="pricing.html" style="text-decoration: none;"><button class="btn btn-primary" style="width: 100%;">⬆️ Upgrade to Premium</button></a>
+                    </div>
+                `;
+                document.getElementById('upgradeBanner').style.display = 'block';
+                document.getElementById('premiumFeatures').style.display = 'none';
+                document.getElementById('freeFeatures').style.display = 'block';
+            }
+
+            // Update stats
+            document.getElementById('profileCount').textContent = user.profiles.length;
+            document.getElementById('accountAge').textContent = Math.max(0, authManager.getAccountAge(user.createdAt));
+
+            // Load profiles
+            loadUserProfiles(user);
+        }
+
+        function loadUserProfiles(user) {
+            const profilesList = document.getElementById('profilesList');
+            const emptyEl = document.getElementById('emptyProfiles');
+
+            if (user.profiles.length === 0) {
+                profilesList.style.display = 'none';
+                emptyEl.style.display = 'block';
+            } else {
+                profilesList.style.display = 'block';
+                emptyEl.style.display = 'none';
+
+                profilesList.innerHTML = user.profiles.map((profileId, index) => `
+                    <li class="profile-item">
+                        <div class="profile-item-info">
+                            <h4>Profile ${index + 1}</h4>
+                            <p>ID: ${profileId}</p>
+                        </div>
+                        <div class="profile-item-actions">
+                            <button class="btn-view" onclick="alert('View profile coming soon')">👁️ View</button>
+                            <button class="btn-edit" onclick="alert('Edit profile coming soon')">✏️ Edit</button>
+                            <button class="btn-delete" onclick="deleteProfile('${profileId}')">🗑️ Delete</button>
+                        </div>
+                    </li>
+                `).join('');
+            }
+        }
+
+        function deleteProfile(profileId) {
+            if (confirm('Delete this profile?')) {
+                const user = authManager.getCurrentUser();
+                user.profiles = user.profiles.filter(p => p !== profileId);
+                authManager.updateUserProfile({ profiles: user.profiles });
+                loadDashboard();
+            }
+        }
+
+        function logoutUser() {
+            if (confirm('Are you sure you want to logout?')) {
+                authManager.logout();
+            }
+        }
+
+        // Initialize
+        window.addEventListener('load', loadDashboard);
+    </script>
+</body>
+</html>

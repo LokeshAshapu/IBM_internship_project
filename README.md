@@ -42,6 +42,35 @@ The **Emergency Medical Profile** application is a responsive web platform desig
 - AI-powered medication suggestions based on medical conditions
 - Profile sharing via Web Share API or clipboard
 - Multiple profile management
+- **NEW: Freemium Subscription Model** ⭐
+  - Free tier: Basic profiles, QR codes, downloads
+  - Premium tier: File uploads, family profiles, SMS/Email alerts
+
+## 💰 Subscription & Premium Features
+
+The application now includes a **freemium subscription model** with support for:
+
+### Free Tier (Forever Free)
+- ✅ Create basic medical profile
+- ✅ Generate QR code
+- ✅ Search profiles
+- ✅ Download QR, PDF, CSV (text data)
+
+### Premium Tier ($4.99/month or $49/year)
+- ✅ Everything in Free
+- ✅ Upload files (PDFs, prescriptions, insurance cards) - 50MB max
+- ✅ Manage up to 5 family member profiles
+- ✅ SMS alerts when QR code is scanned
+- ✅ Email alerts to emergency contacts
+- ✅ Advanced sharing options
+- ✅ Priority support
+
+### 14-Day Free Trial
+- Try all premium features with no credit card required
+- Cancel anytime - no commitment
+- Full access to all features during trial
+
+**Visit** `pricing.html` **to see pricing details and start a free trial.**
 
 ## 📋 User Guide
 
@@ -83,22 +112,155 @@ After profile creation, you can download:
 ```
 ├── index.html              # Profile creation page
 ├── search.html             # Profile search page
-├── view.html               # QR-based profile viewer (NEW)
+├── view.html               # QR-based profile viewer
+├── dashboard.html          # User dashboard (NEW)
+├── account-settings.html   # Account & subscription management (NEW)
+├── billing-history.html    # Billing and transaction history (NEW)
+├── login.html              # User login page (NEW)
+├── register.html           # User registration page (NEW)
+├── pricing.html            # Pricing page with subscription options
 ├── css/
-│   ├── main.css            # Primary stylesheet (updated with QR styling)
+│   ├── main.css            # Primary stylesheet
 │   ├── style.css           # Additional styles
 │   └── search.css          # Search page styles
 ├── js/
-│   └── app.js              # Main application logic (enhanced with QR & download functions)
+│   ├── app.js              # Main application logic
+│   ├── auth.js             # User authentication system (NEW)
+│   ├── subscription.js     # Subscription management
+│   └── payments.js         # Stripe integration
+├── SUBSCRIPTION_SETUP.md   # Subscription system setup guide
 └── README.md               # This file
 ```
 
+## 🔐 User Authentication & Dashboard (NEW)
+
+The application now includes a complete user authentication system with personalized dashboards and subscription management.
+
+### Authentication Features
+- ✅ **Email/Password Registration** - Create account with secure password
+- ✅ **GitHub OAuth Integration** - Quick login with GitHub account (demo mode)
+- ✅ **Session Management** - 7-day session timeout with auto-logout
+- ✅ **Password Strength Validation** - Real-time validation with strength meter
+- ✅ **Demo User** - `test@example.com` / `password123` for testing
+
+### Dashboard Features
+- 📊 **User Profile Display** - See your name and subscription tier badge
+- 👤 **Profile Management** - View all your created emergency profiles
+- 💳 **Subscription Status** - Current plan details, expiry date, profile limits
+- 📈 **Account Statistics** - Total profiles created, account age, activity metrics
+- ⚙️ **Quick Actions** - Shortcut buttons to create, search, or manage profiles
+- 🔗 **Navigation** - Easy access to settings, billing, and pricing pages
+
+### Account Settings
+- 👤 **Profile Tab** - Edit name, phone number, bio information
+- 💳 **Subscription Tab** - View subscription details, manage payments, cancel subscription
+- 🔒 **Security Tab** - Change password, enable 2FA (coming soon), manage active sessions
+- 🔔 **Notifications Tab** - Control email and SMS alert preferences per tier
+
+### Billing & Payment Tracking
+- 📋 **Billing History** - View all past transactions and invoices
+- 💰 **Payment Summary** - Total spent, refunds issued, next renewal date
+- 📥 **Export Billing** - Download full transaction history as CSV
+- 🧾 **Receipt Management** - View and download individual receipts
+
+### User Flow
+```
+New User → Register (login.html) → Create Account → Dashboard
+↓
+Create Profile → Profile Linked to User → View on Dashboard
+↓
+Free Tier → See Upgrade Option → Subscribe → Premium Features Unlocked
+↓
+Settings → Manage Account → View Billing → Change Subscription
+```
+
+## 💎 Subscription System
+
+### How It Works
+
+The application uses **localStorage** to track per-user subscription status. When users:
+1. **Register** → Automatically enrolled in **Free tier** with 1 profile slot
+2. **Create Profiles** → Profiles linked to user account and appear on dashboard
+3. **Click "Upgrade"** → Redirected to pricing page for subscription options
+4. **Start Free Trial** → Automatically activated with all premium features for 14 days
+5. **Subscribe** → Premium features unlock with 5 profile slots and advanced features
+
+### User-Based Subscription Storage
+
+Subscription data is stored in localStorage with user profile:
+```json
+{
+  "userId": "user_timestamp_random",
+  "email": "user@example.com",
+  "name": "User Name",
+  "subscription": {
+    "tier": "free" | "premium",
+    "features": ["file_uploads", "family_profiles", "sms_alerts"],
+    "maxProfiles": 1 | 5,
+    "maxFileSize": 0 | 52428800,
+    "expiryDate": "ISO-8601 timestamp"
+  },
+  "profiles": ["profile_id_1", "profile_id_2"]
+}
+```
+
+### Feature Gating by Tier
+
+**Free Tier Features:**
+- ✅ 1 profile
+- ✅ Text-only data
+- ✅ QR code generation
+- ✅ Profile search
+- ✅ Basic downloads (CSV, PDF, QR image)
+
+**Premium Tier Features:**
+- ✅ All free features
+- ✅ 5 family profiles
+- ✅ File uploads (50MB limit per profile)
+- ✅ SMS alerts when profile scanned
+- ✅ Email alerts to emergency contacts
+- ✅ Advanced sharing options
+
+### File Structure
+
+**New authentication files:**
+- `js/auth.js` - User registration, login, session management
+- `dashboard.html` - User dashboard with profile overview
+- `account-settings.html` - Profile, subscription, security settings
+- `billing-history.html` - Transaction history and receipts
+- `login.html` - Email/password + GitHub OAuth login
+- `register.html` - Account creation with password strength validation
+
+**Subscription files:**
+- `js/subscription.js` - Core subscription logic and feature gating
+- `js/payments.js` - Stripe payment integration (test mode by default)
+- `pricing.html` - Pricing page with tier comparison
+
+**Updated files:**
+- `index.html` - Added auth scripts, user nav bar, profile linking
+- `search.html` - Added auth scripts, user nav bar
+- `js/app.js` - Link profiles to authenticated users
+- `css/main.css` - Added auth and subscription UI styles
+
+### For Development & Testing
+
+The system works in **mock mode** by default:
+- ✅ Register and login without backend database
+- ✅ Start free trials without credit card
+- ✅ Test feature gating and profile limits
+- ✅ Simulate subscription upgrades and cancellations
+- ✅ Demo user available: `test@example.com` / `password123`
+
+For production with real payments and authentication, see `SUBSCRIPTION_SETUP.md`.
+
 ## 🔐 Data Security & Privacy
 
-- **No centralized server** - Data stored locally in browser
+- **Per-User Data** - Each user's profiles and settings stored separately
+- **Session-Based Auth** - 7-day timeout, auto-logout on expiry
+- **No centralized server** - Data stored locally in browser (demo mode)
 - **Optional GitHub backup** - Configure in `GITHUB_CONFIG` if desired
 - **Unique Access Codes** - 8-character random codes (36^8 combinations)
-- **No passwords required** - Access codes provide security through obscurity
+- **Secure password storage** - Hashed with demo hash function (use bcrypt in production)
 - **HTTPS recommended** - For production deployment
 - **Secure sharing** - Share codes only with trusted individuals
 
@@ -477,5 +639,5 @@ For questions about this project, please refer to the GitHub repository or the I
 
 ---
 
-**Last Updated**: 2026-05-16
-**Version**: 2.0 (QR Code Feature Release)
+**Last Updated**: 2026-05-19
+**Version**: 3.0 (User Authentication & Dashboard Release)

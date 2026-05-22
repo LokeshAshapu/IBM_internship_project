@@ -22,6 +22,15 @@
     to { transform: translateY(0); }
 }
 
+.consent-banner.dismissed {
+    animation: slideDown 0.5s ease-in forwards;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(0); }
+    to { transform: translateY(100%); }
+}
+
 .consent-banner button {
     background: rgba(255,255,255,0.15);
     border: none;

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription System Test</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; padding: 2rem; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; margin-bottom: 1rem; }
+        h2 { color: #34495e; margin-top: 2rem; margin-bottom: 1rem; border-bottom: 2px solid #ecf0f1; padding-bottom: 0.5rem; }
+        .test-section { margin: 2rem 0; }
+        .test { background: #f8f9fa; padding: 1rem; margin: 0.5rem 0; border-radius: 4px; border-left: 4px solid #3498db; }
+        .test.pass { border-left-color: #27ae60; background: #e8f8f5; }
+        .test.fail { border-left-color: #e74c3c; background: #fff5f5; }
+        button { padding: 0.75rem 1.5rem; margin: 0.5rem 0.25rem; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-primary:hover { background: #2980b9; }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .status { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-left: 0.5rem; }
+        .status.active { background: #d4edda; color: #155724; }
+        .status.inactive { background: #f8d7da; color: #721c24; }
+        .info-box { background: #e3f2fd; border-left: 4px solid #2196f3; padding: 1rem; margin: 1rem 0; border-radius: 4px; }
+        .error { color: #e74c3c; }
+        .success { color: #27ae60; }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #ecf0f1; }
+        th { background: #f8f9fa; font-weight: 600; }
+        code { background: #f5f5f5; padding: 0.25rem 0.5rem; border-radius: 3px; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Subscription System Test Suite</h1>
+        <p>Test the Emergency Medical Profile subscription system</p>
+
+        <div class="info-box">
+            ℹ️ <strong>Test Environment:</strong> This page tests the subscription infrastructure in development mode. All features work in mock mode without real payment processing.
+        </div>
+
+        <!-- Subscription Status -->
+        <div class="test-section">
+            <h2>📊 Current Subscription Status</h2>
+            <div class="test" id="statusTest">
+                <strong>Tier:</strong> <span id="tierDisplay">-</span>
+                <strong style="margin-left: 2rem;">Premium:</strong> <span id="premiumDisplay">-</span>
+                <strong style="margin-left: 2rem;">Max Profiles:</strong> <span id="maxProfilesDisplay">-</span>
+            </div>
+            <button class="btn-primary" onclick="refreshStatus()">🔄 Refresh Status</button>
+            <button class="btn-danger" onclick="resetSubscription()">🔄 Reset to Free</button>
+        </div>
+
+        <!-- Feature Access Tests -->
+        <div class="test-section">
+            <h2>✨ Feature Access Tests</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Is Available?</th>
+                        <th>Requires Premium?</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>file_uploads</code></td>
+                        <td id="fa-file_uploads">-</td>
+                        <td id="rp-file_uploads">-</td>
+                        <td><button class="btn-primary" onclick="checkFeature('file_uploads')">Test</button></td>
+                    </tr>
+                    <tr>
+                        <td><code>multiple_profiles</code></td>
+                        <td id="fa-multiple_profiles">-</td>
+                        <td id="rp-multiple_profiles">-</td>
+                        <td><button class="btn-primary" onclick="checkFeature('multiple_profiles')">Test</button></td>
+                    </tr>
+                    <tr>
+                        <td><code>sms_alerts</code></td>
+                        <td id="fa-sms_alerts">-</td>
+                        <td id="rp-sms_alerts">-</td>
+                        <td><button class="btn-primary" onclick="checkFeature('sms_alerts')">Test</button></td>
+                    </tr>
+                    <tr>
+                        <td><code>email_alerts</code></td>
+                        <td id="fa-email_alerts">-</td>
+                        <td id="rp-email_alerts">-</td>
+                        <td><button class="btn-primary" onclick="checkFeature('email_alerts')">Test</button></td>
+                    </tr>
+                    <tr>
+                        <td><code>qr_code</code></td>
+                        <td id="fa-qr_code">-</td>
+                        <td id="rp-qr_code">-</td>
+                        <td><button class="btn-primary" onclick="checkFeature('qr_code')">Test</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Trial Tests -->
+        <div class="test-section">
+            <h2>🎁 Free Trial Tests</h2>
+            <div class="test">
+                <button class="btn-success" onclick="startFreeTrial()">✨ Start 14-Day Free Trial</button>
+                <button class="btn-primary" onclick="checkTrialStatus()">📋 Check Trial Status</button>
+            </div>
+            <div id="trialResult" style="margin-top: 1rem;"></div>
+        </div>
+
+        <!-- Upgrade Tests -->
+        <div class="test-section">
+            <h2>💳 Subscription Upgrade Tests</h2>
+            <div class="test">
+                <button class="btn-success" onclick="simulateUpgrade()">✅ Simulate Premium Upgrade</button>
+                <button class="btn-success" onclick="simulateYearlyUpgrade()">✅ Simulate Yearly Upgrade</button>
+                <button class="btn-danger" onclick="simulateCancelation()">❌ Simulate Cancellation</button>
+            </div>
+            <div id="upgradeResult" style="margin-top: 1rem;"></div>
+        </div>
+
+        <!-- Data Inspection -->
+        <div class="test-section">
+            <h2>🔍 LocalStorage Data Inspection</h2>
+            <div class="test">
+                <button class="btn-primary" onclick="inspectLocalStorage()">📊 View Subscription Data</button>
+                <button class="btn-primary" onclick="clearLocalStorage()">🗑️ Clear All Subscriptions</button>
+            </div>
+            <div id="storageInspection" style="margin-top: 1rem; background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto;"><pre id="storageDisplay">-</pre></div>
+        </div>
+
+        <!-- UI Component Tests -->
+        <div class="test-section">
+            <h2>🎨 UI Component Tests</h2>
+            <div class="test">
+                <button class="btn-primary" onclick="testUpgradeModal()">🔒 Show Upgrade Modal</button>
+                <button class="btn-primary" onclick="testPremiumBadge()">⭐ Add Premium Badge</button>
+                <button class="btn-primary" onclick="testSubscriptionStatus()">📊 Show Subscription Status Bar</button>
+            </div>
+            <div id="uiTestContainer" style="margin-top: 1rem;"></div>
+        </div>
+
+        <!-- Quick Navigation -->
+        <div class="test-section">
+            <h2>🔗 Quick Links</h2>
+            <div class="test">
+                <a href="index.html" target="_blank"><button class="btn-primary">→ Create Profile</button></a>
+                <a href="search.html" target="_blank"><button class="btn-primary">→ Search Profile</button></a>
+                <a href="pricing.html" target="_blank"><button class="btn-primary">→ Pricing Page</button></a>
+            </div>
+        </div>
+
+        <!-- Test Results Summary -->
+        <div class="test-section">
+            <h2>📝 Test Summary</h2>
+            <div id="summary" style="padding: 1rem; background: #f8f9fa; border-radius: 4px;"></div>
+        </div>
+    </div>
+
+    <!-- Load Subscription System -->
+    <script src="js/subscription.js"></script>
+    <script src="js/payments.js"></script>
+
+    <script>
+        // Test functions
+        function refreshStatus() {
+            const sub = subscriptionManager.getSubscription();
+            document.getElementById('tierDisplay').textContent = sub.tier.toUpperCase();
+            document.getElementById('premiumDisplay').textContent = subscriptionManager.isPremium() ? '✅ Yes' : '❌ No';
+            document.getElementById('maxProfilesDisplay').textContent = sub.maxProfiles;
+            updateSummary();
+        }
+
+        function resetSubscription() {
+            subscriptionManager.cancelSubscription();
+            refreshStatus();
+            alert('Subscription reset to FREE tier');
+        }
+
+        function checkFeature(feature) {
+            const hasAccess = subscriptionManager.hasFeature(feature);
+            const requiresPrem = requiresPremium(feature);
+            const access = checkFeatureAccess(feature);
+            
+            document.getElementById(`fa-${feature}`).textContent = hasAccess ? '✅ Yes' : '❌ No';
+            document.getElementById(`rp-${feature}`).textContent = requiresPrem ? '✅ Yes' : '❌ No';
+            
+            alert(`Feature: ${feature}\nAvailable: ${hasAccess}\nRequires Premium: ${requiresPrem}\n\nAccess: ${access.hasAccess ? 'ALLOWED' : 'DENIED'}`);
+        }
+
+        function startFreeTrial() {
+            const sub = paymentManager.startFreeTrial();
+            document.getElementById('trialResult').innerHTML = `
+                <div class="test pass">
+                    <strong>✅ Free Trial Activated!</strong><br>
+                    Duration: 14 days<br>
+                    Expires: ${subscriptionManager.getFormattedExpiryDate()}<br>
+                    Features: All premium features unlocked<br>
+                    <button class="btn-primary" onclick="location.reload()">Reload Page</button>
+                </div>
+            `;
+            refreshStatus();
+        }
+
+        function checkTrialStatus() {
+            const isActive = subscriptionManager.isInTrialPeriod();
+            const daysRemaining = subscriptionManager.getDaysRemaining();
+            
+            document.getElementById('trialResult').innerHTML = `
+                <div class="test ${isActive ? 'pass' : ''}">
+                    <strong>Trial Status:</strong> ${isActive ? 'ACTIVE ✅' : 'INACTIVE ❌'}<br>
+                    <strong>Days Remaining:</strong> ${daysRemaining}<br>
+                    <strong>Expiry Date:</strong> ${subscriptionManager.getFormattedExpiryDate()}
+                </div>
+            `;
+        }
+
+        function simulateUpgrade() {
+            subscriptionManager.upgradeToPremium('sub_test_' + Date.now());
+            document.getElementById('upgradeResult').innerHTML = `
+                <div class="test pass">
+                    <strong>✅ Premium Upgrade Simulated!</strong><br>
+                    Tier: PREMIUM<br>
+                    Duration: 1 month<br>
+                    Expires: ${subscriptionManager.getFormattedExpiryDate()}<br>
+                    <button class="btn-primary" onclick="location.reload()">Reload Page</button>
+                </div>
+            `;
+            refreshStatus();
+        }
+
+        function simulateYearlyUpgrade() {
+            const sub = subscriptionManager.getSubscription();
+            sub.tier = 'premium';
+            const expiryDate = new Date();
+            expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+            sub.expiryDate = expiryDate.toISOString();
+            sub.features = [...SUBSCRIPTION_CONFIG.FREE_FEATURES, ...SUBSCRIPTION_CONFIG.PREMIUM_FEATURES];
+            subscriptionManager.saveSubscription(sub);
+            
+            document.getElementById('upgradeResult').innerHTML = `
+                <div class="test pass">
+                    <strong>✅ Yearly Upgrade Simulated!</strong><br>
+                    Tier: PREMIUM<br>
+                    Duration: 1 year<br>
+                    Expires: ${subscriptionManager.getFormattedExpiryDate()}<br>
+                    <button class="btn-primary" onclick="location.reload()">Reload Page</button>
+                </div>
+            `;
+            refreshStatus();
+        }
+
+        function simulateCancelation() {
+            subscriptionManager.cancelSubscription();
+            document.getElementById('upgradeResult').innerHTML = `
+                <div class="test fail">
+                    <strong>❌ Subscription Cancelled</strong><br>
+                    Reverted to: FREE TIER<br>
+                    <button class="btn-primary" onclick="location.reload()">Reload Page</button>
+                </div>
+            `;
+            refreshStatus();
+        }
+
+        function inspectLocalStorage() {
+            const sub = localStorage.getItem('userSubscription');
+            const formatted = sub ? JSON.stringify(JSON.parse(sub), null, 2) : 'No subscription data found';
+            document.getElementById('storageDisplay').textContent = formatted;
+        }
+
+        function clearLocalStorage() {
+            if (confirm('Clear all subscription data?')) {
+                localStorage.removeItem('userSubscription');
+                document.getElementById('storageDisplay').textContent = 'Cleared. Refresh page.';
+                setTimeout(() => location.reload(), 1500);
+            }
+        }
+
+        function testUpgradeModal() {
+            showUpgradePrompt('Premium Feature', 'This feature requires an active premium subscription. Upgrade now to unlock!');
+        }
+
+        function testPremiumBadge() {
+            const container = document.getElementById('uiTestContainer');
+            const element = document.createElement('div');
+            element.innerHTML = `
+                <div style="padding: 1rem; background: #f0f0f0; border-radius: 4px; display: inline-block;">
+                    <span>Premium Feature Example</span>
+            `;
+            addPremiumBadge(element);
+            element.innerHTML += '</div>';
+            container.innerHTML = element.innerHTML;
+        }
+
+        function testSubscriptionStatus() {
+            const container = document.getElementById('uiTestContainer');
+            const isPrem = subscriptionManager.isPremium();
+            const statusClass = isPrem ? 'premium' : '';
+            container.innerHTML = `
+                <div class="subscription-status ${statusClass}">
+                    ${isPrem ? '✅' : '⏳'} Your subscription tier: <strong>${subscriptionManager.getTier().toUpperCase()}</strong>
+                    ${isPrem ? `<br>Expires: ${subscriptionManager.getFormattedExpiryDate()}` : ''}
+                </div>
+            `;
+        }
+
+        function updateSummary() {
+            const sub = subscriptionManager.getSubscription();
+            const tests = {
+                'Subscription Loaded': !!sub,
+                'Tier Available': !!sub.tier,
+                'Features List': Array.isArray(sub.features),
+                'Max Profiles': sub.maxProfiles > 0,
+                'File Size Limit': typeof sub.maxFileSize === 'number',
+                'Premium Accessible': sub.maxProfiles > 1 || subscriptionManager.isPremium()
+            };
+
+            let html = '<table style="width: 100%; margin-top: 1rem;"><tr><th>Test</th><th>Result</th></tr>';
+            let passCount = 0, failCount = 0;
+
+            Object.entries(tests).forEach(([test, result]) => {
+                html += `<tr><td>${test}</td><td>${result ? '✅ PASS' : '❌ FAIL'}</td></tr>`;
+                result ? passCount++ : failCount++;
+            });
+
+            html += '</table>';
+            html += `<p style="margin-top: 1rem;"><strong>Results:</strong> ${passCount} passed, ${failCount} failed</p>`;
+            document.getElementById('summary').innerHTML = html;
+        }
+
+        // Initialize on load
+        window.addEventListener('load', function() {
+            refreshStatus();
+            
+            // Load all features
+            ['file_uploads', 'multiple_profiles', 'sms_alerts', 'email_alerts', 'qr_code'].forEach(feature => {
+                const hasAccess = subscriptionManager.hasFeature(feature);
+                const requiresPrem = requiresPremium(feature);
+                document.getElementById(`fa-${feature}`).textContent = hasAccess ? '✅ Yes' : '❌ No';
+                document.getElementById(`rp-${feature}`).textContent = requiresPrem ? '✅ Yes' : '❌ No';
+            });
+
+            inspectLocalStorage();
+        });
+    </script>
+</body>
+</html>

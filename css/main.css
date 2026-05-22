@@ -472,3 +472,205 @@ footer {
     padding: 1rem;
   }
 }
+
+/* ===== SUBSCRIPTION & PREMIUM FEATURES ===== */
+
+/* Premium Badge */
+.premium-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #333;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-left: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(255, 165, 0, 0.3);
+}
+
+/* Upgrade Modal */
+.upgrade-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.upgrade-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+  position: relative;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: #999;
+  transition: color 0.2s ease;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  color: #333;
+}
+
+.modal-content h2 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+}
+
+.modal-content p {
+  color: #666;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.modal-actions {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.modal-actions .btn {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.modal-actions .btn-primary {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+}
+
+.modal-actions .btn-primary:hover {
+  background: linear-gradient(135deg, #2980b9, #1f618d);
+  transform: translateY(-2px);
+}
+
+.modal-actions .btn-secondary {
+  background: #ecf0f1;
+  color: #2c3e50;
+}
+
+.modal-actions .btn-secondary:hover {
+  background: #d5dbdb;
+}
+
+.modal-hint {
+  font-size: 0.85rem;
+  color: #95a5a6;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+/* Premium Feature Label */
+.premium-label {
+  display: inline-block;
+  background: #fff3cd;
+  border: 1px solid #ffeeba;
+  color: #856404;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+/* Subscription Status Bar */
+.subscription-status {
+  background: linear-gradient(135deg, #fff3cd, #ffe8a0);
+  border-left: 4px solid #ffc107;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  color: #856404;
+  font-weight: 500;
+}
+
+.subscription-status.premium {
+  background: linear-gradient(135deg, #e8f8f5, #d1f2eb);
+  border-left-color: #27ae60;
+  color: #16a085;
+}
+
+/* Disabled Input for Free Users */
+.feature-locked {
+  opacity: 0.6;
+  pointer-events: none;
+  background-color: #f5f5f5 !important;
+}
+
+.feature-locked::placeholder {
+  color: #ccc;
+}
+
+/* File Upload Premium Indicator */
+.file-upload-premium {
+  position: relative;
+}
+
+.file-upload-premium input[type="file"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (max-width: 600px) {
+  .upgrade-modal {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+
+  .modal-content h2 {
+    font-size: 1.2rem;
+  }
+}
